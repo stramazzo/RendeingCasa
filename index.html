@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>RendeingCasa – Indice pagine</title>
+<style>
+  :root {
+    color-scheme: light dark;
+    --bg: #f7f7f8;
+    --card-bg: #ffffff;
+    --text: #1a1a1a;
+    --muted: #666;
+    --accent: #2563eb;
+    --border: #e2e2e5;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #14151a;
+      --card-bg: #1f2027;
+      --text: #f0f0f2;
+      --muted: #9a9aa5;
+      --accent: #6d9bff;
+      --border: #33343c;
+    }
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    padding: 32px 16px;
+    background: var(--bg);
+    color: var(--text);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  }
+  .wrap {
+    max-width: 720px;
+    margin: 0 auto;
+  }
+  h1 {
+    font-size: 1.6rem;
+    margin-bottom: 4px;
+  }
+  p.sub {
+    color: var(--muted);
+    margin-top: 0;
+    margin-bottom: 24px;
+  }
+  ul#list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+  li a {
+    display: block;
+    padding: 16px 18px;
+    background: var(--card-bg);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    color: var(--text);
+    text-decoration: none;
+    transition: border-color 0.15s ease, transform 0.15s ease;
+  }
+  li a:hover {
+    border-color: var(--accent);
+    transform: translateY(-1px);
+  }
+  li a .name {
+    font-weight: 600;
+    color: var(--accent);
+  }
+  li a .path {
+    display: block;
+    font-size: 0.85rem;
+    color: var(--muted);
+    margin-top: 2px;
+  }
+  #status {
+    color: var(--muted);
+    font-size: 0.9rem;
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>RendeingCasa</h1>
+  <p class="sub">Elenco delle pagine HTML disponibili in questo repository.</p>
+  <ul id="list"></ul>
+  <p id="status"></p>
+</div>
+
+<script>
+(function () {
+  var listEl = document.getElementById('list');
+  var statusEl = document.getElementById('status');
+
+  // Fallback statico: aggiornare qui se si aggiungono nuovi file HTML
+  // e l'API GitHub non è raggiungibile.
+  var fallback = [
+    { path: 'bagni-3d.html', name: 'I due bagni – modello 3D' }
+  ];
+
+  function render(items) {
+    listEl.innerHTML = '';
+    if (!items.length) {
+      statusEl.textContent = 'Nessun file HTML trovato.';
+      return;
+    }
+    items.forEach(function (item) {
+      var li = document.createElement('li');
+      var a = document.createElement('a');
+      a.href = item.path;
+      var nameSpan = document.createElement('span');
+      nameSpan.className = 'name';
+      nameSpan.textContent = item.name || item.path;
+      var pathSpan = document.createElement('span');
+      pathSpan.className = 'path';
+      pathSpan.textContent = item.path;
+      a.appendChild(nameSpan);
+      a.appendChild(pathSpan);
+      li.appendChild(a);
+      listEl.appendChild(li);
+    });
+  }
+
+  function guessName(path) {
+    var base = path.replace(/\.html?$/i, '').replace(/[-_]/g, ' ');
+    return base.charAt(0).toUpperCase() + base.slice(1);
+  }
+
+  // Prova a recuperare dinamicamente l'elenco via GitHub API,
+  // così l'indice resta aggiornato senza doverlo modificare a mano.
+  var owner = 'stramazzo';
+  var repo = 'rendeingcasa';
+  var apiUrl = 'https://api.github.com/repos/' + owner + '/' + repo + '/git/trees/HEAD?recursive=1';
+
+  render(fallback);
+  statusEl.textContent = 'Aggiornamento elenco…';
+
+  fetch(apiUrl)
+    .then(function (res) {
+      if (!res.ok) throw new Error('GitHub API non disponibile (' + res.status + ')');
+      return res.json();
+    })
+    .then(function (data) {
+      if (!data.tree) throw new Error('Risposta inattesa dalla API');
+      var htmlFiles = data.tree
+        .filter(function (entry) {
+          return entry.type === 'blob' &&
+            /\.html?$/i.test(entry.path) &&
+            entry.path.toLowerCase() !== 'index.html';
+        })
+        .map(function (entry) {
+          return { path: entry.path, name: guessName(entry.path) };
+        })
+        .sort(function (a, b) { return a.path.localeCompare(b.path); });
+
+      if (htmlFiles.length) {
+        render(htmlFiles);
+        statusEl.textContent = '';
+      } else {
+        statusEl.textContent = '';
+      }
+    })
+    .catch(function () {
+      // API non raggiungibile (rate limit, offline, ecc.): resta l'elenco statico.
+      statusEl.textContent = '';
+    });
+})();
+</script>
+</body>
+</html>
