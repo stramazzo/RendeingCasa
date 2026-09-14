@@ -329,7 +329,17 @@ function cy(r,len,x,y,z,axis,mat,parent,seg){const g=new THREE.CylinderGeometry(
 const rect=(w,h)=>[[0,0],[w,0],[w,h],[0,h]];
 function planeFrom(pts,holes,mat){
   const s=new THREE.Shape(pts.map(p=>new THREE.Vector2(p[0],p[1])));
-  (holes||[]).forEach(h=>s.holes.push(new THREE.Path([new THREE.Vector2(h[0],h[1]),new THREE.Vector2(h[2],h[1]),new THREE.Vector2(h[2],h[3]),new THREE.Vector2(h[0],h[3])])));
+  /* ogni foro è [x0,y0,x1,y1] (rettangolo, come finora) oppure, se più lungo di 4 numeri,
+     una sequenza libera di coppie [x,y,x,y,...] per un contorno poligonale (es. a "L") */
+  (holes||[]).forEach(h=>{
+    if(h.length>4){
+      const path=new THREE.Path();
+      for(let i=0;i<h.length;i+=2){if(i===0)path.moveTo(h[i],h[i+1]);else path.lineTo(h[i],h[i+1]);}
+      s.holes.push(path);
+    }else{
+      s.holes.push(new THREE.Path([new THREE.Vector2(h[0],h[1]),new THREE.Vector2(h[2],h[1]),new THREE.Vector2(h[2],h[3]),new THREE.Vector2(h[0],h[3])]));
+    }
+  });
   const m=new THREE.Mesh(new THREE.ShapeGeometry(s),mat);m.receiveShadow=true;m.castShadow=false;return m;
 }
 
@@ -816,17 +826,22 @@ function buildTerra(cfg){
   const WY0=0.90,WY1=1.90,SHX=W-0.80;
   const tA=planeFrom(rect(W,H),null,M.paint);tA.position.set(0,0,0.002);AG.add(tA);
   const tB=planeFrom(rect(W,H+GH),null,M.paint);tB.rotation.y=Math.PI;tB.position.set(W,0,D-0.002);BG.add(tB);
-  const tL=planeFrom(rect(D,H),[[D-0.625,WY0,D-0.14,WY1]],M.paint);tL.rotation.y=Math.PI/2;tL.position.set(0.002,0,D);LG.add(tL);
+  /* foro a "L" nella finitura della parete L per rendere visibile la resede sottostante:
+     tratto alto (a tutta altezza) fra la parete dei sanitari e la finestra, poi solo fino
+     al davanzale sotto la finestra stessa — vedi i box in muratura più sotto (NICHE) */
+  const tL=planeFrom(rect(D,H),[[D-0.625,WY0,D-0.14,WY1],
+    [D-0.625,0, D-0.625,WY0, D-0.14,WY0, D-0.14,H, D-0.0005,H, D-0.0005,0]],M.paint);
+  tL.rotation.y=Math.PI/2;tL.position.set(0.002,0,D);LG.add(tL);
   const tR=planeFrom([[0,0],[1.05+dB,0],[1.05+dB,2.10],[1.86+dB,2.10],[1.86+dB,0],[D,0],[D,H],[0,H]],null,M.paint);tR.rotation.y=-Math.PI/2;tR.position.set(W-0.002,0,0);RG.add(tR);
   [tA,tB,tL,tR].forEach(m=>m.userData.info=PAINT);
   const fl=planeFrom(rect(W,D),null,getFloor());fl.rotation.x=-Math.PI/2;fl.position.set(0,0,D);R.add(fl);fl.userData.info=TILE;
   const tk=0.10,tl=0.34,HT=H+0.12,NICHE=0.20;
   bx(-tl,W+tk,0,HT,-tk,0,M.plaster,AG);
   bx(-tl,W+tk,0,H+GH+0.12,D,D+tk,M.plaster,BG);
-  /* resede sotto la finestra: dalla parete dei sanitari (z=0) fino all'altro lato del vano
-     finestra (z=0.625), da terra al davanzale (y:0-WY0), profondità 20 cm invece dei 34 cm
-     pieni del resto della parete */
-  bx(-tl,0,WY0,HT,0,0.14,M.plaster,LG);bx(-NICHE,0,0,WY0,0,0.14,M.plaster,LG);
+  /* resede profondità 20 cm (invece dei 34 cm pieni del resto della parete): a tutta altezza
+     sul tratto fra la parete dei sanitari e la finestra (z:0-0.14, il lato destro della
+     finestra), poi solo da terra al davanzale sotto la finestra stessa (z:0.14-0.625, y:0-WY0) */
+  bx(-NICHE,0,0,HT,0,0.14,M.plaster,LG);
   bx(-tl,0,0,HT,0.625,D,M.plaster,LG);bx(-NICHE,0,0,WY0,0.14,0.625,M.plaster,LG);bx(-tl,0,WY1,HT,0.14,0.625,M.plaster,LG);
   bx(W,W+tk,0,HT,0,1.05+dB,M.plaster,RG);bx(W,W+tk,0,HT,1.86+dB,D,M.plaster,RG);bx(W,W+tk,2.10,HT,1.05+dB,1.86+dB,M.plaster,RG);
   bx(-tl,W+tk,-0.12,-0.001,-tk,D+tk,M.plaster,R,false);
@@ -836,13 +851,14 @@ function buildTerra(cfg){
   const SH={t:'Rivestimento doccia, decoro su fondo cemento chiaro',s:'60 \u00d7 120 cm in orizzontale, fino a 240 cm, come nel campione fotografato (IMG_5508). Texture ricostruita, indicativa'};
   const mS=std({map:damaskTex(),roughness:0.55,envMapIntensity:0.55}),mW=getGC01();
   const XS=SHX+0.01,ZS=0.99;
-  wallPlane(ctx,'A',0,XS,0,TW,mW,GC01);wallPlane(ctx,'B',0,W,0,TW,mW,GC01);wallPlane(ctx,'L',0,D,0,TW,mW,GC01,[[0.14,0.625,WY0]]);
+  /* niente rivestimento GC01 su tutto il tratto z:0-0.625 (resede + finestra): resta solo
+     dalla finestra in poi (z:0.625-D) */
+  wallPlane(ctx,'A',0,XS,0,TW,mW,GC01);wallPlane(ctx,'B',0,W,0,TW,mW,GC01);wallPlane(ctx,'L',0.625,D,0,TW,mW,GC01);
   wallPlane(ctx,'R',ZS,1.0,0,TW,mW,GC01);wallPlane(ctx,'R',1.86+dB,D,0,TW,mW,GC01);
   wallPlane(ctx,'A',XS,W,0,TS,mS,SH);wallPlane(ctx,'R',0,ZS,0,TS,mS,SH);
   tp(0,XS-0.011,TW,TW+0.01,0,0.011,AG);tp(XS-0.011,XS,TW,TS+0.01,0,0.011,AG);tp(XS-0.011,W,TS,TS+0.01,0,0.011,AG);
   tp(0,W,TW,TW+0.01,D-0.011,D,BG);
-  tp(0,0.011,TW,TW+0.01,0,0.129,LG);tp(0,0.011,TW,TW+0.01,0.636,D,LG);
-  tp(0,0.011,WY0+0.015,TW+0.01,0.129,0.14,LG);tp(0,0.011,WY0+0.015,TW+0.01,0.625,0.636,LG);
+  tp(0,0.011,TW,TW+0.01,0.625,D,LG);
   tp(W-0.011,W,TS,TS+0.01,0,ZS+0.011,RG);tp(W-0.011,W,TW,TS,ZS,ZS+0.011,RG);tp(W-0.011,W,TW,TW+0.01,1.93+dB,D,RG);
 
   /* window on wall L, lowered by 20 cm */
