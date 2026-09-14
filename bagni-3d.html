@@ -55,6 +55,7 @@ body.idle .tag,body.idle #bHome,body.idle .bar,body.idle #info{opacity:0;pointer
     <button data-cfg="2">Config. 2</button>
     <button data-cfg="3">Config. 3</button>
     <button id="bDxf">Scarica DXF</button>
+    <button id="bPlanQuota">Pianta con quota</button>
   </div>
   <div class="row">
     <button id="bDoor">Apri box doccia</button>
@@ -538,6 +539,33 @@ function polyDist(A,B){
   for(let i=0;i<A.length;i++){const a0=A[i],a1=A[(i+1)%A.length];
     for(let j=0;j<B.length;j++){d=Math.min(d,segSeg(a0,a1,B[j],B[(j+1)%B.length]));if(d===0)return 0;}}
   return d;
+}
+/* come ptSeg, ma restituisce anche il punto sul segmento più vicino a p (non solo la distanza) */
+function ptSegPoint(p,a,b){const vx=b[0]-a[0],vy=b[1]-a[1],L=vx*vx+vy*vy;let t=L?((p[0]-a[0])*vx+(p[1]-a[1])*vy)/L:0;t=Math.max(0,Math.min(1,t));return [a[0]+t*vx,a[1]+t*vy];}
+/* come segSeg, ma restituisce anche la coppia di punti (uno per segmento) che realizza la distanza minima */
+function segSegPts(p,q,r,t){
+  const d1=[q[0]-p[0],q[1]-p[1]],d2=[t[0]-r[0],t[1]-r[1]],den=d1[0]*d2[1]-d1[1]*d2[0];
+  if(Math.abs(den)>1e-12){
+    const a=((r[0]-p[0])*d2[1]-(r[1]-p[1])*d2[0])/den,b=((r[0]-p[0])*d1[1]-(r[1]-p[1])*d1[0])/den;
+    if(a>=0&&a<=1&&b>=0&&b<=1){const ix=p[0]+a*d1[0],iy=p[1]+a*d1[1];return {d:0,p1:[ix,iy],p2:[ix,iy]};}
+  }
+  const cands=[
+    {d:ptSeg(p,r,t),p1:p,p2:ptSegPoint(p,r,t)},
+    {d:ptSeg(q,r,t),p1:q,p2:ptSegPoint(q,r,t)},
+    {d:ptSeg(r,p,q),p1:ptSegPoint(r,p,q),p2:r},
+    {d:ptSeg(t,p,q),p1:ptSegPoint(t,p,q),p2:t}
+  ];
+  return cands.reduce((best,c)=>c.d<best.d?c:best);
+}
+/* come polyDist, ma restituisce anche i due punti reali (uno per poligono) più vicini fra loro */
+function polyDistPts(A,B){
+  let best={d:Infinity,p1:null,p2:null};
+  for(let i=0;i<A.length;i++){const a0=A[i],a1=A[(i+1)%A.length];
+    for(let j=0;j<B.length;j++){
+      const r=segSegPts(a0,a1,B[j],B[(j+1)%B.length]);
+      if(r.d<best.d){best=r;if(best.d===0)return best;}
+    }}
+  return best;
 }
 
 /* Gintonic wall-mounted basin mixer (needed because the oval sits against the wall) */
@@ -1275,6 +1303,59 @@ function gapText(){
   let d=Infinity;cur.furn.forEach(p=>{d=Math.min(d,polyDist(p,cur.shower));});
   $('gap').textContent='Passaggio mobile\u2013doccia: '+(Math.round(d*1000)/10).toFixed(0)+' cm';
 }
+/* punto del mobile e punto della doccia pi\u00f9 vicini fra loro, sull'arredo pi\u00f9 vicino alla doccia */
+function closestFurnitureGap(){
+  let best={d:Infinity,p1:null,p2:null};
+  cur.furn.forEach(p=>{const r=polyDistPts(p,cur.shower);if(r.d<best.d)best=r;});
+  return best;
+}
+/* proietta un punto del mondo 3D (x,y,z) sul pixel del canvas per la camera corrente */
+function projectToPixel(x,y,z,pw,ph){
+  const v=new THREE.Vector3(x,y,z).project(cam);
+  return [(v.x*0.5+0.5)*pw,(1-(v.y*0.5+0.5))*ph];
+}
+/* disegna sul context 2d una quota (linea + tacche + etichetta in cm) fra due punti pixel */
+function drawQuote(ctx,a,b,dMeters){
+  const dx=b[0]-a[0],dy=b[1]-a[1],len=Math.hypot(dx,dy)||1,nx=-dy/len,ny=dx/len,tick=8;
+  ctx.save();
+  ctx.strokeStyle='#e23d28';ctx.fillStyle='#e23d28';ctx.lineWidth=2.5;ctx.lineCap='round';
+  ctx.beginPath();ctx.moveTo(a[0],a[1]);ctx.lineTo(b[0],b[1]);ctx.stroke();
+  [a,b].forEach(p=>{
+    ctx.beginPath();ctx.moveTo(p[0]-nx*tick,p[1]-ny*tick);ctx.lineTo(p[0]+nx*tick,p[1]+ny*tick);ctx.stroke();
+    ctx.beginPath();ctx.arc(p[0],p[1],4,0,Math.PI*2);ctx.fill();
+  });
+  const mx=(a[0]+b[0])/2,my=(a[1]+b[1])/2,label=(Math.round(dMeters*1000)/10).toFixed(0)+' cm';
+  ctx.font='bold 20px -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif';
+  const tw=ctx.measureText(label).width,padX=10,padY=7,bw=tw+2*padX,bh=28+2*(padY-7);
+  ctx.fillStyle='rgba(251,249,245,0.94)';ctx.fillRect(mx-bw/2,my-bh/2,bw,bh);
+  ctx.strokeStyle='#e23d28';ctx.lineWidth=1.5;ctx.strokeRect(mx-bw/2,my-bh/2,bw,bh);
+  ctx.fillStyle='#e23d28';ctx.textAlign='center';ctx.textBaseline='middle';
+  ctx.fillText(label,mx,my+1);
+  ctx.restore();
+}
+/* esporta la vista in pianta corrente come immagine PNG, con la quota reale (in cm) fra i due
+   punti pi\u00f9 vicini di mobile e doccia disegnata come una quota architettonica sopra il render */
+function exportPlanWithQuota(){
+  if(!cur)return;
+  goView('pianta',true);
+  showAll();cur.R.updateMatrixWorld(true);applyCut(true);
+  renderer.render(scene,cam);
+  const gap=closestFurnitureGap();
+  const src=renderer.domElement,pw=src.width,ph=src.height;
+  const out=document.createElement('canvas');out.width=pw;out.height=ph;
+  const octx=out.getContext('2d');
+  octx.drawImage(src,0,0);
+  if(gap.p1&&gap.p2){
+    const a=projectToPixel(gap.p1[0],0.02,gap.p1[1],pw,ph),b=projectToPixel(gap.p2[0],0.02,gap.p2[1],pw,ph);
+    drawQuote(octx,a,b,gap.d);
+  }
+  const name='pianta_quotata_'+(curKey==='terra'?'piano_terra':'primo_piano')+'_config'+curCfg+'.png';
+  const link=document.createElement('a');
+  link.href=out.toDataURL('image/png');link.download=name;
+  document.body.appendChild(link);link.click();link.remove();
+  showInfo({t:'Pianta con quota',s:name+' \u2014 vista dall\u2019alto con la distanza minima mobile\u2013doccia indicata come quota fra i due punti reali pi\u00f9 vicini'});
+  applyCut();dirty=true;
+}
 function labels(){
   const a=cur.anim;
   document.querySelectorAll('#cfgs button[data-cfg]').forEach(b=>b.classList.toggle('on',+b.dataset.cfg===curCfg));
@@ -1343,6 +1424,7 @@ $('bDxf').addEventListener('click',()=>{
   setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove();},2000);
   showInfo({t:'Disegno tecnico DXF',s:name+' \u2014 pianta e prospetti delle quattro pareti, generati automaticamente dal modello 3D in scala reale (unit\u00e0 cm)'});
 });
+$('bPlanQuota').addEventListener('click',exportPlanWithQuota);
 $('bHome').addEventListener('click',openHome);
 
 /* ---------- loop ---------- */
