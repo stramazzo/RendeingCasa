@@ -834,15 +834,21 @@ function buildTerra(cfg){
   tL.rotation.y=Math.PI/2;tL.position.set(0.002,0,D);LG.add(tL);
   const tR=planeFrom([[0,0],[1.05+dB,0],[1.05+dB,2.10],[1.86+dB,2.10],[1.86+dB,0],[D,0],[D,H],[0,H]],null,M.paint);tR.rotation.y=-Math.PI/2;tR.position.set(W-0.002,0,0);RG.add(tR);
   [tA,tB,tL,tR].forEach(m=>m.userData.info=PAINT);
-  const fl=planeFrom(rect(W,D),null,getFloor());fl.rotation.x=-Math.PI/2;fl.position.set(0,0,D);R.add(fl);fl.userData.info=TILE;
   const tk=0.10,tl=0.34,HT=H+0.12,NICHE=0.20;
+  /* il pavimento prosegue dentro la resede (x:-NICHE-0, z:0-0.625), altrimenti in fondo
+     all'incavo si vedrebbe il massetto invece del gres */
+  const fl=planeFrom([[0,0],[W,0],[W,D],[-NICHE,D],[-NICHE,D-0.625],[0,D-0.625]],null,getFloor());
+  fl.rotation.x=-Math.PI/2;fl.position.set(0,0,D);R.add(fl);fl.userData.info=TILE;
   bx(-tl,W+tk,0,HT,-tk,0,M.plaster,AG);
   bx(-tl,W+tk,0,H+GH+0.12,D,D+tk,M.plaster,BG);
-  /* resede profondità 20 cm (invece dei 34 cm pieni del resto della parete): a tutta altezza
-     sul tratto fra la parete dei sanitari e la finestra (z:0-0.14, il lato destro della
-     finestra), poi solo da terra al davanzale sotto la finestra stessa (z:0.14-0.625, y:0-WY0) */
-  bx(-NICHE,0,0,HT,0,0.14,M.plaster,LG);
-  bx(-tl,0,0,HT,0.625,D,M.plaster,LG);bx(-NICHE,0,0,WY0,0.14,0.625,M.plaster,LG);bx(-tl,0,WY1,HT,0.14,0.625,M.plaster,LG);
+  /* resede profonda 20 cm: nei tratti interessati la muratura si ferma a -NICHE invece di
+     arrivare a filo parete (x=0), così i 20 cm verso la stanza restano vuoti e l'incavo si
+     vede davvero. A tutta altezza fra la parete dei sanitari e la finestra (z:0-0.14, il
+     lato destro della finestra), poi solo da terra al davanzale sotto la finestra stessa
+     (z:0.14-0.625, y:0-WY0). I risvolti li danno le facce dei volumi adiacenti: la parete
+     dei sanitari a z=0, il muro pieno a z=0.625, il davanzale sopra la parte bassa. */
+  bx(-tl,-NICHE,0,HT,0,0.14,M.plaster,LG);
+  bx(-tl,0,0,HT,0.625,D,M.plaster,LG);bx(-tl,-NICHE,0,WY0,0.14,0.625,M.plaster,LG);bx(-tl,0,WY1,HT,0.14,0.625,M.plaster,LG);
   bx(W,W+tk,0,HT,0,1.05+dB,M.plaster,RG);bx(W,W+tk,0,HT,1.86+dB,D,M.plaster,RG);bx(W,W+tk,2.10,HT,1.05+dB,1.86+dB,M.plaster,RG);
   bx(-tl,W+tk,-0.12,-0.001,-tk,D+tk,M.plaster,R,false);
   ceilingWithCove(ctx,-tl,W+tk,-tk);
