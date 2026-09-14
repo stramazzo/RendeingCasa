@@ -1303,10 +1303,11 @@ function gapText(){
   let d=Infinity;cur.furn.forEach(p=>{d=Math.min(d,polyDist(p,cur.shower));});
   $('gap').textContent='Passaggio mobile\u2013doccia: '+(Math.round(d*1000)/10).toFixed(0)+' cm';
 }
-/* punto del mobile e punto della doccia pi\u00f9 vicini fra loro, sull'arredo pi\u00f9 vicino alla doccia */
+/* punto del mobile e punto della doccia pi\u00f9 vicini fra loro, sull'arredo pi\u00f9 vicino alla doccia.
+   idx tiene traccia di quale pezzo d'arredo ha vinto, per recuperarne l'altezza reale (cur.dxf.dxfFurn) */
 function closestFurnitureGap(){
-  let best={d:Infinity,p1:null,p2:null};
-  cur.furn.forEach(p=>{const r=polyDistPts(p,cur.shower);if(r.d<best.d)best=r;});
+  let best={d:Infinity,p1:null,p2:null,idx:-1};
+  cur.furn.forEach((p,i)=>{const r=polyDistPts(p,cur.shower);if(r.d<best.d){best=r;best.idx=i;}});
   return best;
 }
 /* proietta un punto del mondo 3D (x,y,z) sul pixel del canvas per la camera corrente */
@@ -1346,7 +1347,12 @@ function exportPlanWithQuota(){
   const octx=out.getContext('2d');
   octx.drawImage(src,0,0);
   if(gap.p1&&gap.p2){
-    const a=projectToPixel(gap.p1[0],0.02,gap.p1[1],pw,ph),b=projectToPixel(gap.p2[0],0.02,gap.p2[1],pw,ph);
+    /* punto lato mobile alla sua altezza reale (piano/bordo lavabo), non a terra: la camera
+       in pianta non è perfettamente ortografica, quindi a terra il marcatore si scollega
+       dalla sagoma visibile (specialmente sugli angoli stondati) e sembra un errore */
+    const furnPiece=cur.dxf&&cur.dxf.dxfFurn&&cur.dxf.dxfFurn[gap.idx];
+    const hFurn=furnPiece&&furnPiece.y1!=null?furnPiece.y1:0.75,hShower=0.03;
+    const a=projectToPixel(gap.p1[0],hFurn,gap.p1[1],pw,ph),b=projectToPixel(gap.p2[0],hShower,gap.p2[1],pw,ph);
     drawQuote(octx,a,b,gap.d);
   }
   const name='pianta_quotata_'+(curKey==='terra'?'piano_terra':'primo_piano')+'_config'+curCfg+'.png';
