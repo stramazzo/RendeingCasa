@@ -403,13 +403,13 @@ function buildShelves(o){
   gr.userData.info={t:'Mobile con cassetto e mensola sagomata',s:'Due piani in legno profondi 40 cm, piano superiore a 70 cm da terra: nei primi 90 cm dalla parete della finestra formano un unico mobile con cassetto; oltre, la mensola \u00e8 sagomata da 115 cm sul lato muro a 85 cm sul lato interno (parte frontale accorciata di 5 cm), con angolo frontale arrotondato entro 50 cm dal centro del lavabo. Il primo piano \u00e8 sagomato attorno alla colonna in cartongesso'};
   /* profilo in pianta: u lungo la parete a partire dalla finestra, v profondita' dal muro.
      angolo frontale lato porta arrotondato (raggio FR + raccordo curvo) in modo che resti
-     entro 50 cm dal centro del lavabo (cx, D-0.165 circa) */
+     entro 50 cm dal centro del lavabo preso sulla parete (cx, D), non nel bacino */
   const prof=()=>{
     const p=new THREE.Shape();
     p.moveTo(col,0);
     p.lineTo(LW-FR,0);
     p.quadraticCurveTo(LW,0,LW,FR);
-    p.bezierCurveTo(LW,FR+0.18,LW-0.05,dep,LF,dep);
+    p.bezierCurveTo(LW,FR+0.08,LW-0.08,dep,LF,dep);
     p.lineTo(0,dep);
     p.lineTo(0,col);
     p.lineTo(col,col);
