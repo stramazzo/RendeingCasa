@@ -397,16 +397,18 @@ function buildMoon(o){
    finestra formano un unico mobile con cassetto; oltre, la mensola e' sagomata da 130 cm
    sul lato muro a 100 cm sul lato interno con raccordo curvo, senza spigoli vivi ---------- */
 function buildShelves(o){
-  const D=o.D,x0=o.x0,dep=0.40,th=0.03,col=o.col||0,cx=o.cx,LW=1.20,LF=0.90,CAB=0.90;
+  const D=o.D,x0=o.x0,dep=0.40,th=0.03,col=o.col||0,cx=o.cx,LW=1.15,LF=0.90,CAB=0.90,FR=0.15;
   const gr=new THREE.Group();R.add(gr);
-  gr.userData.info={t:'Mobile con cassetto e mensola sagomata',s:'Due piani in legno profondi 40 cm, piano superiore a 70 cm da terra: nei primi 90 cm dalla parete della finestra formano un unico mobile con cassetto; oltre, la mensola \u00e8 sagomata da 120 cm sul lato muro a 90 cm sul lato interno con raccordo curvo progressivo. Il primo piano \u00e8 sagomato attorno alla colonna in cartongesso'};
-  /* profilo in pianta: u lungo la parete a partire dalla finestra, v profondita' dal muro */
+  gr.userData.info={t:'Mobile con cassetto e mensola sagomata',s:'Due piani in legno profondi 40 cm, piano superiore a 70 cm da terra: nei primi 90 cm dalla parete della finestra formano un unico mobile con cassetto; oltre, la mensola \u00e8 sagomata da 115 cm sul lato muro a 90 cm sul lato interno, accorciata di 5 cm sul lato porta, con angolo frontale arrotondato entro 50 cm dal centro del lavabo. Il primo piano \u00e8 sagomato attorno alla colonna in cartongesso'};
+  /* profilo in pianta: u lungo la parete a partire dalla finestra, v profondita' dal muro.
+     angolo frontale lato porta arrotondato (raggio FR + raccordo curvo) in modo che resti
+     entro 50 cm dal centro del lavabo (cx, D-0.165 circa) */
   const prof=()=>{
     const p=new THREE.Shape();
     p.moveTo(col,0);
-    p.lineTo(LW-0.09,0);
-    p.quadraticCurveTo(LW,0,LW,0.09);
-    p.bezierCurveTo(LW,0.27,LF+0.17,dep,LF,dep);
+    p.lineTo(LW-FR,0);
+    p.quadraticCurveTo(LW,0,LW,FR);
+    p.bezierCurveTo(LW,FR+0.18,LW-0.05,dep,LF,dep);
     p.lineTo(0,dep);
     p.lineTo(0,col);
     p.lineTo(col,col);
@@ -773,10 +775,14 @@ function buildTerra(cfg){
   const tR=planeFrom([[0,0],[1.05+dB,0],[1.05+dB,2.10],[1.86+dB,2.10],[1.86+dB,0],[D,0],[D,H],[0,H]],null,M.paint);tR.rotation.y=-Math.PI/2;tR.position.set(W-0.002,0,0);RG.add(tR);
   [tA,tB,tL,tR].forEach(m=>m.userData.info=PAINT);
   const fl=planeFrom(rect(W,D),null,getFloor());fl.rotation.x=-Math.PI/2;fl.position.set(0,0,D);R.add(fl);fl.userData.info=TILE;
-  const tk=0.10,tl=0.34,HT=H+0.12;
+  const tk=0.10,tl=0.34,HT=H+0.12,NICHE=0.20;
   bx(-tl,W+tk,0,HT,-tk,0,M.plaster,AG);
   bx(-tl,W+tk,0,H+GH+0.12,D,D+tk,M.plaster,BG);
-  bx(-tl,0,0,HT,0,0.14,M.plaster,LG);bx(-tl,0,0,HT,0.625,D,M.plaster,LG);bx(-tl,0,0,WY0,0.14,0.625,M.plaster,LG);bx(-tl,0,WY1,HT,0.14,0.625,M.plaster,LG);
+  /* resede sotto la finestra: dalla parete dei sanitari (z=0) fino all'altro lato del vano
+     finestra (z=0.625), da terra al davanzale (y:0-WY0), profondità 20 cm invece dei 34 cm
+     pieni del resto della parete */
+  bx(-tl,0,WY0,HT,0,0.14,M.plaster,LG);bx(-NICHE,0,0,WY0,0,0.14,M.plaster,LG);
+  bx(-tl,0,0,HT,0.625,D,M.plaster,LG);bx(-NICHE,0,0,WY0,0.14,0.625,M.plaster,LG);bx(-tl,0,WY1,HT,0.14,0.625,M.plaster,LG);
   bx(W,W+tk,0,HT,0,1.05+dB,M.plaster,RG);bx(W,W+tk,0,HT,1.86+dB,D,M.plaster,RG);bx(W,W+tk,2.10,HT,1.05+dB,1.86+dB,M.plaster,RG);
   bx(-tl,W+tk,-0.12,-0.001,-tk,D+tk,M.plaster,R,false);
   ceilingWithCove(ctx,-tl,W+tk,-tk);
@@ -846,8 +852,8 @@ function buildTerra(cfg){
     cy(0.016,0.003,0,0.2675,0.305,'y',M.chrome,bd,32);
     gintonic(bd,0,0.41,0.07,'bid');
   }
-  const ph=new THREE.Group();LG.add(ph);ph.userData.info={t:'Portarotolo',s:'Sulla parete della finestra, a fianco del vaso, a 72 cm da terra'};
-  cy(0.008,0.07,0.035,0.72,0.42,'x',M.chrome,ph);cy(0.006,0.13,0.07,0.72,0.485,'z',M.chrome,ph);cy(0.052,0.10,0.07,0.72,0.49,'z',M.paper,ph);
+  const ph=new THREE.Group();AG.add(ph);ph.userData.info={t:'Portarotolo',s:'Sulla parete dei sanitari, a fianco del vaso, a 72 cm da terra'};
+  cy(0.008,0.07,0.18,0.72,0.035,'z',M.chrome,ph);cy(0.006,0.13,0.115,0.72,0.07,'x',M.chrome,ph);cy(0.052,0.10,0.11,0.72,0.07,'x',M.paper,ph);
 
   /* shower 80 x 100, corner entry with two sliding doors */
   const RW=2.35;const shw=new THREE.Group();shw.position.x=dR;R.add(shw);
