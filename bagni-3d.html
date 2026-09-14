@@ -458,7 +458,10 @@ function buildShelves(o){
 
   /* sagoma reale in pianta, usata per distanze, ingombri e collisioni */
   const poly=shape.getPoints(72).map(p=>[x0+p.x,D-p.y]);
-  return {group:gr,polys:[poly,rectPoly([cx-0.33,cx+0.33,D-0.44,D])],y0:yB,y1:RT};
+  /* bacino 66 x 44 cm "a spigoli raccordati" (come nella descrizione del lavabo Geberit
+     Fantasia poco sopra): la sagoma in pianta usata per le distanze ha quindi gli angoli
+     arrotondati (raggio 10 cm), non spigoli vivi */
+  return {group:gr,polys:[poly,roundedRectPoly([cx-0.33,cx+0.33,D-0.44,D],0.10)],y0:yB,y1:RT};
 }
 
 /* ---------- plasterboard duct casing 10 x 10, floor to ceiling ---------- */
@@ -525,6 +528,20 @@ function archMirror(parent,o){
 
 /* ---------- distanze in pianta su sagome reali (poligoni), non su bounding box ---------- */
 const rectPoly=r=>[[r[0],r[2]],[r[1],r[2]],[r[1],r[3]],[r[0],r[3]]];
+/* rettangolo con i 4 angoli raccordati di raggio rad (stesso ingombro esterno di rectPoly,
+   ma con gli angoli tagliati): usato per le sagome in pianta di elementi realmente
+   arrotondati (es. bacini di lavabi "a spigoli raccordati"), così che il punto più vicino
+   nei calcoli di distanza (polyDist/polyDistPts) cada su un bordo davvero curvo e non su
+   uno spigolo vivo che nel render 3D non esiste */
+function roundedRectPoly(r,rad,n){
+  const [x0,x1,z0,z1]=r;n=n||10;
+  const pts=[],arc=(cx,cz,a0,a1)=>{for(let i=0;i<=n;i++){const t=a0+(a1-a0)*i/n;pts.push([cx+rad*Math.cos(t),cz+rad*Math.sin(t)]);}};
+  arc(x1-rad,z0+rad,-Math.PI/2,0);
+  arc(x1-rad,z1-rad,0,Math.PI/2);
+  arc(x0+rad,z1-rad,Math.PI/2,Math.PI);
+  arc(x0+rad,z0+rad,Math.PI,Math.PI*1.5);
+  return pts;
+}
 function ptSeg(p,a,b){const vx=b[0]-a[0],vy=b[1]-a[1],L=vx*vx+vy*vy;let t=L?((p[0]-a[0])*vx+(p[1]-a[1])*vy)/L:0;t=Math.max(0,Math.min(1,t));return Math.hypot(p[0]-a[0]-t*vx,p[1]-a[1]-t*vy);}
 function segSeg(p,q,r,t){
   const d1=[q[0]-p[0],q[1]-p[1]],d2=[t[0]-r[0],t[1]-r[1]],den=d1[0]*d2[1]-d1[1]*d2[0];
