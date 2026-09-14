@@ -62,7 +62,7 @@
     <ul>
       <li><b>Parete cottura</b> 352 cm: base 95 + base 120 (piano cottura in asse a 155) + colonna forno/micro 60 (asse 245) + colonna frigo 60 (asse 305) + fianco 17</li>
       <li><b>Parete lavello</b> 395 cm: angolo 95 + lavastoviglie 60 + lavello 90 a incasso (asse 200) + base 50 + <b>termocucina a legna</b> da 80, spalle al muro e fronte a filo dei mobili, canna fumaria a destra</li>
-      <li><b>Finiture</b>: pavimento Mirage Glocal GC07 Sugar come nei bagni, pareti bianche, ante e piano ripresi dal render</li>
+      <li><b>Finiture</b>: pavimento in gres Mirage Glocal GC07 Sugar, pareti bianche, ante e piano ripresi dal render</li>
       <li><b>Impianti e luci</b>: cappa H.200 · micro H.160 · forno H.90 · frigo H.160 · prese H.106÷110 · uscite LED · faretti a soffitto</li>
       <li>Le <b>tre configurazioni</b> per ora sono identiche: sono segnaposto da differenziare quando decidiamo le varianti</li>
     </ul>
@@ -111,7 +111,6 @@
    LA CUCINA – modello 3D  (unità = cm)
    Origine (0,0) = spigolo interno delle due pareti attrezzate.
    X = parete COTTURA (352 cm)  ·  Z = parete LAVELLO (395 cm)
-   Finiture coordinate con bagni-3d.html (stesso pavimento, stesse pareti).
    ===================================================================== */
 
 const ROOM = { w: 430, d: 470, h: 270 };
@@ -162,7 +161,7 @@ let amb, sun, warm, spots = [], hoodLight;
 let cfg = 0, sera = false, showImp = false, showQuote = false, aperte = false, winOpen = false;
 let aniso = 1;
 
-/* ---------- texture procedurali (portate da bagni-3d.html) ---------- */
+/* ---------- texture procedurali ---------- */
 let seed = 1;
 const rnd = ()=>{ seed = (seed*16807)%2147483647; return (seed-1)/2147483646; };
 function mkC(w,h){ const c=document.createElement('canvas'); c.width=w; c.height=h; return c; }
@@ -176,7 +175,7 @@ function joints(g,w,h,cols,rows,col,gw){
   for(let i=0;i<=cols;i++) g.fillRect(i*w/cols-gw/2,0,gw,h);
   for(let j=0;j<=rows;j++) g.fillRect(0,j*h/rows-gw/2,w,gw);
 }
-/* gres effetto cemento, stesse costanti del pavimento dei bagni (Mirage Glocal GC07 Sugar) */
+/* gres effetto cemento a pavimento (Mirage Glocal GC07 Sugar) */
 function cementTex(o){
   const pxm=853.333, w=Math.round(o.mw*pxm), h=Math.round(o.mh*pxm), c=mkC(w,h), g=c.getContext('2d');
   const cols=Math.round(o.mw/1.2), rows=Math.round(o.mh/0.6), tw=w/cols, th=h/rows; seed=o.seed;
@@ -350,12 +349,12 @@ function buildRoom(){
   floor.rotation.x = -Math.PI/2;
   floor.position.set(ROOM.w/2 - 40, 0, ROOM.d/2 - 40);
   floor.receiveShadow = true;
-  floor.userData.info = ['Mirage Glocal GC07 Sugar, spazzolato','Gres porcellanato effetto cemento 60 × 120 cm: stesso pavimento dei due bagni, per continuità fra gli ambienti.'];
+  floor.userData.info = ['Mirage Glocal GC07 Sugar, spazzolato','Gres porcellanato effetto cemento 60 × 120 cm, posato in tutta la stanza.'];
   g.add(floor);
 
   const wB = new THREE.Mesh(new THREE.PlaneGeometry(ROOM.w, ROOM.h), M.muro);
   wB.position.set(ROOM.w/2 - 40, ROOM.h/2, -1); wB.receiveShadow = true;
-  wB.userData.info = ['Pareti','Pittura bianca, come nei bagni sopra il rivestimento.'];
+  wB.userData.info = ['Pareti','Pittura bianca opaca.'];
   g.add(wB);
 
   const parts = [
@@ -369,7 +368,7 @@ function buildRoom(){
     m.rotation.y = Math.PI/2;
     m.position.set(-1, p.y0 + p.h/2, p.z0 + p.len/2);
     m.receiveShadow = true;
-    m.userData.info = ['Pareti','Pittura bianca, come nei bagni sopra il rivestimento.'];
+    m.userData.info = ['Pareti','Pittura bianca opaca.'];
     g.add(m);
   });
 
@@ -380,13 +379,12 @@ function buildRoom(){
   buildDownlights(g);
 }
 
-/* finestra a due ante, stessa estetica delle finestre dei bagni:
-   telaio laccato bianco, montanti da 5 cm, vetro satinato chiaro, maniglia cromata,
-   ante a battente che ruotano davvero verso l'interno */
+/* finestra a due ante: telaio laccato bianco, montanti da 5 cm, vetro satinato chiaro,
+   maniglia cromata, ante a battente che ruotano davvero verso l'interno */
 function buildWindow(g){
   const W0 = WIN.z0, W1 = WIN.z1, Y0 = WIN.y0, Y1 = WIN.y1, mid = (W0+W1)/2, THK = 14;
   const win = new THREE.Group(); g.add(win);
-  win.userData.info = ['Finestra a due ante','Luce 120 × 125 cm, davanzale a 110 cm: stessa estetica delle finestre dei bagni (telaio laccato, montanti da 5 cm, maniglia cromata). Misure da verificare in loco.'];
+  win.userData.info = ['Finestra a due ante','Luce 120 × 125 cm, davanzale a 110 cm. Telaio laccato, montanti da 5 cm, maniglia cromata. Misure da verificare in loco.'];
 
   /* davanzale e sguincio */
   box(THK+6, 4, W1-W0+12, M.top, -THK-4, Y0-4, W0-6, g, ['Davanzale','In marmo chiaro, come il piano di lavoro.']);
@@ -413,7 +411,7 @@ function buildWindow(g){
       const m = new THREE.Mesh(new THREE.BoxGeometry(4.5,h,zl), mat);
       m.position.set(x, y0+h/2, sgn*(z0+zl/2));
       m.castShadow=true; m.receiveShadow=true; leaf.add(m);
-      m.userData.info = ['Anta della finestra','Anta a battente che si apre verso l\'interno, come nei bagni.'];
+      m.userData.info = ['Anta della finestra','Anta a battente che si apre verso l\'interno.'];
       return m;
     };
     put(2.5, Y0+2, Y1-Y0-4, 0, 5, M.lacca);
@@ -446,17 +444,20 @@ function build(){
   applyLight();
 }
 
+/* frontale + gola in un unico gruppo, così aprendo il cassetto la maniglia lo segue */
 function frontale(w,h,d,x,y,z,info){
-  const m = box(w,h,d,M.ante,x,y,z,gKitchen,info);
-  box(w-4, 1.6, 1.2, M.gola, x+2, y+h-4, z+d, gKitchen);
-  return m;
+  const g = new THREE.Group(); gKitchen.add(g);
+  box(w,h,d,M.ante,x,y,z,g,info);
+  box(w-4, 1.6, 1.2, M.gola, x+2, y+h-4, z+d, g);
+  return g;
 }
 
 function buildBasiB(){
   RUN_B.forEach(mod=>{
     if(mod.type==='oven'||mod.type==='fridge') return;
     if(mod.type==='fill'){
-      box(mod.w, H_TOP-H_PLINTH, DEPTH_B, M.ante, mod.x0, H_PLINTH, 0, gKitchen, mod.info);
+      /* si ferma sotto il piano, come i corpi delle basi */
+      box(mod.w, H_TOP-H_PLINTH-DEPTH_T, DEPTH_B, M.ante, mod.x0, H_PLINTH, 0, gKitchen, mod.info);
       return;
     }
     box(mod.w, 9, DEPTH_B-6, M.zoccolo, mod.x0, 0, 3, gKitchen);
@@ -476,13 +477,15 @@ function buildBasiA(){
     box(DEPTH_B-6, 9, mod.w, M.zoccolo, 3, 0, mod.z0, gKitchen);
     box(DEPTH_B-2, H_TOP-H_PLINTH-DEPTH_T, mod.w, M.corpo, 0, H_PLINTH, mod.z0, gKitchen);
     const front = (h,y)=>{
-      const m = box(2, h, mod.w-1.2, M.ante, DEPTH_B-2, y, mod.z0, gKitchen, mod.info);
-      box(1.4, 1.6, mod.w-6, M.gola, DEPTH_B, y+h-4, mod.z0+3, gKitchen);
-      return m;
+      const g = new THREE.Group(); gKitchen.add(g);
+      box(2, h, mod.w-1.2, M.ante, DEPTH_B-2, y, mod.z0, g, mod.info);
+      box(1.4, 1.6, mod.w-6, M.gola, DEPTH_B, y+h-4, mod.z0+3, g);
+      return g;
     };
     if(mod.type==='dw'){
       doors.push({m:front(H_TOP-H_PLINTH-DEPTH_T-2, H_PLINTH), axis:'x', open:28});
     } else if(mod.type==='sink'){
+      front(26,59);   /* pannello fisso: davanti c'è la vasca, non si apre */
       doors.push({m:front(45,12), axis:'x', open:34});
     } else {
       doors.push({m:front(26,59), axis:'x', open:30});
@@ -522,17 +525,23 @@ function buildLavello(){
 }
 
 function buildTop(){
-  const infoA = ['Piano di lavoro · parete lavello','Sviluppo totale 395 cm compreso l\'angolo, profondità 60, con foro per il lavello a incasso.'];
-  box(352, DEPTH_T, DEPTH_B, M.top, 0, H_TOP-DEPTH_T, 0, gKitchen,
-    ['Piano di lavoro · parete cottura','Marmo chiaro come nel render, sviluppo 352 cm, profondità 60, quota 90 (ipotesi).']);
-  /* il piano della parete lavello è in quattro pezzi, così il foro della vasca è reale */
-  const y = H_TOP-DEPTH_T, zA = DEPTH_B, zE = 395;
+  const infoA = ['Piano di lavoro · parete lavello','Dall\'angolo fino alla termocucina (295 cm), profondità 60, con foro per il lavello a incasso.'];
+  const infoB = ['Piano di lavoro · parete cottura','Marmo chiaro come nel render, profondità 60, quota 90 (ipotesi). Si interrompe sulle colonne, che sono a tutta altezza.'];
+  /* il piano corre solo sopra le basi: si ferma alle colonne (215÷335) e riprende sul fianco */
+  box(215, DEPTH_T, DEPTH_B, M.top, 0, H_TOP-DEPTH_T, 0, gKitchen, infoB);
+  box(352-335, DEPTH_T, DEPTH_B, M.top, 335, H_TOP-DEPTH_T, 0, gKitchen, infoB);
+  /* il piano della parete lavello è in quattro pezzi, così il foro della vasca è reale;
+     si ferma dove inizia la termocucina, che è un apparecchio a sé */
+  /* -2 perché il piano in ghisa e l'alzatina della termocucina sbordano di 2 cm dal corpo */
+  const y = H_TOP-DEPTH_T, zA = DEPTH_B, zE = STOVE.z0-2;
   box(SINK.x0, DEPTH_T, zE-zA, M.top, 0, y, zA, gKitchen, infoA);
   box(DEPTH_B-SINK.x1, DEPTH_T, zE-zA, M.top, SINK.x1, y, zA, gKitchen, infoA);
   box(SINK.x1-SINK.x0, DEPTH_T, SINK.z0-zA, M.top, SINK.x0, y, zA, gKitchen, infoA);
   box(SINK.x1-SINK.x0, DEPTH_T, zE-SINK.z1, M.top, SINK.x0, y, SINK.z1, gKitchen, infoA);
-  box(352, 6, 1.5, M.top, 0, H_TOP, 0, gKitchen);
-  box(1.5, 6, 395-DEPTH_B, M.top, 0, H_TOP, DEPTH_B, gKitchen);
+  /* alzatine: seguono il piano, quindi si fermano anche loro su colonne e termocucina */
+  box(215, 6, 1.5, M.top, 0, H_TOP, 0, gKitchen);
+  box(352-335, 6, 1.5, M.top, 335, H_TOP, 0, gKitchen);
+  box(1.5, 6, zE-DEPTH_B, M.top, 0, H_TOP, DEPTH_B, gKitchen);
 }
 
 function buildColonne(){
@@ -574,7 +583,7 @@ function buildPensili(){
 
   box(110, hh, DEPTH_W, M.ante, 0, y, 0, gKitchen,
     ['Pensili parete cottura','Due ante da 55, quota inferiore 145, altezza '+hh+' cm (ipotesi).']);
-  box(1.6, 1.6, DEPTH_W, M.gola, 54, y+hh-6, 0, gKitchen);
+  box(1.6, hh, 1.2, M.gola, 54, y, DEPTH_W, gKitchen);
   box(DEPTH_W, hh, 75, M.ante, 0, y, DEPTH_B, gKitchen,
     ['Pensile parete lavello','Tra l\'angolo e la finestra. Dopo la finestra, sopra la termocucina, la parete resta libera.']);
   ledStrip(55, y-1.4, DEPTH_W-2, 110, true);
@@ -589,9 +598,9 @@ function buildPensili(){
   hm.position.set(HOB_X, 147.5, 27); gKitchen.add(hm);
   hm.userData.info = ['Luce della cappa','Illumina il piano cottura: è il terzo punto luce visibile nel render.'];
 
-  /* uscita LED a H.217, sopra le colonne */
-  ledStrip(215+68.5, 217, DEPTH_B+2, 137, true,
-    ['Uscita LED H.217','Riportata sullo schema a mano: linea luminosa sopra le colonne.']);
+  /* linea LED in appoggio sopra le colonne (alte 225), alimentata dall'uscita a H.217 */
+  ledStrip(215+68.5, H_TALL+1, DEPTH_B/2, 137, true,
+    ['Linea LED sopra le colonne','Alimentata dall\'uscita “LED H.217” dello schema a mano; la linea luminosa è posata sopra le colonne, a 225 cm.']);
 }
 
 /* ---------- termocucina a legna, smaltata rossa, spalle alla parete finestra ---------- */
@@ -813,14 +822,14 @@ function dxf(){
   line(-40,0,390,0,'MURI'); line(0,0,0,-430,'MURI');
   RUN_B.forEach(m=>{ rect(m.x0,0,m.w,60,'BASI'); text(m.x0+4,-18,String(m.w),9); });
   RUN_A.forEach(m=>{ rect(0,-m.z0,60,m.w,'BASI'); text(8,-m.z0-14,String(m.w),9); });
-  /* termocucina: rettangolo ruotato di 45° attorno al suo centro */
+  /* termocucina: rettangolo orientato secondo STOVE.rot attorno al suo centro */
   const c=Math.cos(STOVE.rot), sn=Math.sin(STOVE.rot), hw=STOVE.w/2, hd=STOVE.d/2;
   const pts=[[ hd,-hw],[ hd, hw],[-hd, hw],[-hd,-hw]].map(p=>{
     const X = STOVE.cx + p[0]*c + p[1]*sn, Z = STOVE.cz - p[0]*sn + p[1]*c;
     return [X, -Z];
   });
   for(let i=0;i<4;i++) line(pts[i][0],pts[i][1],pts[(i+1)%4][0],pts[(i+1)%4][1],'TERMOCUCINA');
-  text(STOVE.cx-30,-STOVE.cz,'TERMOCUCINA 80 (ruotata 45)',8);
+  text(STOVE.cx-30,-STOVE.cz,'TERMOCUCINA 80',8);
   IMPIANTI.forEach(p=>{
     if(p.wall==='B'){ line(p.p,0,p.p,14,'IMPIANTI'); text(p.p+2,16,p.t,6); }
     else { line(0,-p.p,14,-p.p,'IMPIANTI'); text(16,-p.p,p.t,6); }
