@@ -1,0 +1,867 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+<title>La cucina – modello 3D</title>
+<style>
+  :root{
+    --bg:#e4e1da; --panel:rgba(251,249,245,.94); --chip:rgba(251,249,245,.93);
+    --chip-on:#34302b; --txt:#2b2824; --txt2:#5d574f; --line:rgba(40,35,30,.10);
+  }
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+  html,body{margin:0;height:100%;background:var(--bg);color:var(--txt);
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;overflow:hidden}
+  canvas{display:block;touch-action:none}
+
+  #intro{position:fixed;inset:0;z-index:40;background:#e9e6e0;display:flex;align-items:center;
+    justify-content:center;padding:20px;overflow:auto}
+  #intro .card{max-width:560px;width:100%;background:#fbf9f5;border-radius:16px;padding:20px;
+    box-shadow:0 1px 2px rgba(40,35,30,.07)}
+  #intro h1{margin:0 0 6px;font-size:25px;font-weight:650;letter-spacing:-.01em}
+  #intro p{margin:0 0 14px;color:var(--txt2);font-size:14.5px;line-height:1.45}
+  #intro ul{margin:0 0 18px;padding-left:18px;color:var(--txt2);font-size:13.5px;line-height:1.6}
+  #intro b{color:var(--txt);font-weight:600}
+  .cta{display:block;width:100%;padding:13px;border:0;border-radius:999px;background:#34302b;
+    color:#f7f3ec;font-weight:600;font-size:14.5px}
+  .note{margin-top:12px;font-size:11.5px;color:#8a8278;line-height:1.5}
+
+  #top{position:fixed;top:0;left:12px;z-index:20;max-width:calc(100% - 24px);
+    margin-top:calc(12px + env(safe-area-inset-top));background:var(--panel);border-radius:10px;padding:8px 12px}
+  #top .t{font-size:14px;font-weight:600}
+  #top .s{font-size:12px;color:var(--txt2);margin-top:2px}
+
+  #ui{position:fixed;left:0;right:0;bottom:0;z-index:20;padding:8px 0 max(10px,env(safe-area-inset-bottom));
+    display:flex;flex-direction:column;gap:7px}
+  .row{display:flex;gap:6px;overflow-x:auto;padding:0 12px;scrollbar-width:none}
+  .row::-webkit-scrollbar{display:none}
+  .chip{flex:0 0 auto;border:0;background:var(--chip);color:var(--txt);
+    padding:10px 15px;border-radius:999px;font:inherit;font-size:13.5px;line-height:1}
+  .chip.on{background:var(--chip-on);color:#f7f3ec}
+  .lbl{flex:0 0 auto;align-self:center;font-size:10.5px;color:#8a8278;letter-spacing:.6px;
+    text-transform:uppercase}
+
+  #info{position:fixed;left:12px;right:12px;bottom:150px;z-index:25;max-width:420px;
+    background:var(--panel);border-radius:12px;padding:12px 14px;display:none}
+  #info h3{margin:0 0 3px;font-size:15px;font-weight:600}
+  #info p{margin:0;font-size:13.5px;color:var(--txt2);line-height:1.45}
+  #info .x{position:absolute;top:7px;right:11px;color:var(--txt2);font-size:18px;padding:2px 6px}
+  #loader{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;
+    color:var(--txt2);font-size:15px;z-index:30;background:var(--bg);padding:24px;text-align:center}
+</style>
+</head>
+<body>
+
+<div id="loader">Carico il motore 3D…</div>
+
+<div id="intro" style="display:none">
+  <div class="card">
+    <h1>La cucina</h1>
+    <p>Modello 3D ricostruito dagli schemi a mano (fogli Effeti) e dal render di riferimento.
+       Trascina per ruotare, pizzica per lo zoom, tocca un elemento per i dettagli.</p>
+    <ul>
+      <li><b>Parete cottura</b> 352 cm: base 95 + base 120 (piano cottura in asse a 155) + colonna forno/micro 60 (asse 245) + colonna frigo 60 (asse 305) + fianco 17</li>
+      <li><b>Parete lavello</b> 395 cm: angolo 95 + lavastoviglie 60 + lavello 90 a incasso (asse 200) + base 50 + <b>termocucina a legna</b> da 80, spalle al muro e fronte a filo dei mobili, canna fumaria a destra</li>
+      <li><b>Finiture</b>: pavimento Mirage Glocal GC07 Sugar come nei bagni, pareti bianche, ante e piano ripresi dal render</li>
+      <li><b>Impianti e luci</b>: cappa H.200 · micro H.160 · forno H.90 · frigo H.160 · prese H.106÷110 · uscite LED · faretti a soffitto</li>
+      <li>Le <b>tre configurazioni</b> per ora sono identiche: sono segnaposto da differenziare quando decidiamo le varianti</li>
+    </ul>
+    <button class="cta" id="go">Apri la cucina</button>
+    <div class="note">Quote non presenti sugli schemi (piano a 90, pensili H.60 a quota 145, colonne H.225, finestra 120 × 125 con davanzale a 110, soffitto 270) sono ipotesi standard.</div>
+  </div>
+</div>
+
+<div id="top" style="display:none">
+  <div class="t" id="topTitle">Cucina · vista d'ingresso</div>
+  <div class="s">Trascina per ruotare · pizzica per lo zoom · tocca un elemento</div>
+</div>
+
+<div id="info"><span class="x" id="infoX">×</span><h3 id="infoT"></h3><p id="infoP"></p></div>
+
+<div id="ui" style="display:none">
+  <div class="row" id="rowViews">
+    <span class="lbl">Viste</span>
+    <button class="chip on" data-view="ingresso">Ingresso</button>
+    <button class="chip" data-view="lavello">Lavello</button>
+    <button class="chip" data-view="cottura">Cottura</button>
+    <button class="chip" data-view="colonne">Colonne</button>
+    <button class="chip" data-view="termo">Termocucina</button>
+    <button class="chip" data-view="pianta">Pianta</button>
+  </div>
+  <div class="row" id="rowCfg">
+    <span class="lbl">Config.</span>
+    <button class="chip on" data-cfg="0">Config. 1</button>
+    <button class="chip" data-cfg="1">Config. 2</button>
+    <button class="chip" data-cfg="2">Config. 3</button>
+  </div>
+  <div class="row" id="rowAct">
+    <span class="lbl">Azioni</span>
+    <button class="chip" data-act="ante">Apri ante</button>
+    <button class="chip" data-act="finestra">Apri finestra</button>
+    <button class="chip" data-act="sera">Luce serale</button>
+    <button class="chip" data-act="impianti">Impianti e luci</button>
+    <button class="chip" data-act="quote">Quote in pianta</button>
+    <button class="chip" data-act="dxf">Scarica DXF</button>
+  </div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script>
+/* =====================================================================
+   LA CUCINA – modello 3D  (unità = cm)
+   Origine (0,0) = spigolo interno delle due pareti attrezzate.
+   X = parete COTTURA (352 cm)  ·  Z = parete LAVELLO (395 cm)
+   Finiture coordinate con bagni-3d.html (stesso pavimento, stesse pareti).
+   ===================================================================== */
+
+const ROOM = { w: 430, d: 470, h: 270 };
+const DEPTH_B = 60, DEPTH_T = 3;
+const H_TOP = 90, H_PLINTH = 10;
+const H_WALL_UNIT = 145, HU = 60, DEPTH_W = 35;
+const H_TALL = 225;
+const SINK_Z = 200, HOB_X = 155;
+/* vasca del lavello: incasso reale nel piano (foro x 12÷54, z 165÷235, profondità 18) */
+const SINK = { x0:12, x1:54, z0:SINK_Z-35, z1:SINK_Z+35, dp:18 };
+const WIN = { z0: 140, z1: 260, y0: 110, y1: 235 };
+
+const RUN_B = [
+  { x0:0,   w:95,  type:'base',  info:['Base angolo 95','Modulo d\'angolo della parete cottura. Sopra prosegue il piano che gira sulla parete lavello.'] },
+  { x0:95,  w:120, type:'hob',   info:['Base 120 con piano cottura','Piano a induzione in asse a 155 cm, come la cappa (schema: “155 CAPPA H.200”). Cassettoni sotto.'] },
+  { x0:215, w:60,  type:'oven',  info:['Colonna forno + microonde','Asse 245 cm. Alimentazione forno H.90 e microonde H.160 come da schema.'] },
+  { x0:275, w:60,  type:'fridge',info:['Colonna frigo','Asse 305 cm, presa H.160. Frigo da incasso, anta a pannello come nel render.'] },
+  { x0:335, w:17,  type:'fill',  info:['Fianco / riempimento 17','Chiusura finale della parete: 95+120+60+60+17 = 352 cm.'] }
+];
+
+const RUN_A = [
+  { z0:60,  w:35,  type:'base',  info:['Base 35 (dopo l\'angolo)','I primi 60 cm sono occupati dal modulo d\'angolo della parete cottura.'] },
+  { z0:95,  w:60,  type:'dw',    info:['Lavastoviglie 60','Presa lavastoviglie indicata a 170 cm, quota H.45÷50 (schema). Anta a pannello integrata.'] },
+  { z0:155, w:90,  type:'sink',  info:['Base lavello 90','Lavello in asse a 200 cm, sotto la finestra. Scarico/presa sottolavello H.45÷50.'] },
+  { z0:245, w:50,  type:'base',  info:['Base 50','Ultimo modulo prima della termocucina.'] }
+];
+const STOVE = { z0:295, zone:100, w:80, d:60, cx:30, cz:335, rot:0 };
+
+const IMPIANTI = [
+  { wall:'B', p:155, y:200, t:'CAPPA H.200' },
+  { wall:'B', p:245, y:160, t:'MICRO H.160' },
+  { wall:'B', p:245, y:90,  t:'FORNO H.90' },
+  { wall:'B', p:305, y:160, t:'FRIGO H.160' },
+  { wall:'B', p:120, y:108, t:'PRESE H.106÷110' },
+  { wall:'B', p:200, y:108, t:'PRESE H.106÷110' },
+  { wall:'B', p:60,  y:217, t:'USCITA LED H.217' },
+  { wall:'B', p:215, y:217, t:'USCITA LED' },
+  { wall:'A', p:110, y:108, t:'PRESE H.106÷110' },
+  { wall:'A', p:170, y:48,  t:'PRESA LAVAST.' },
+  { wall:'A', p:200, y:48,  t:'PRESA H.45÷50' },
+  { wall:'A', p:330, y:50,  t:'P. TERMOCUCINA' }
+];
+
+/* ===================== SETUP ===================== */
+let renderer, scene, camera, raycaster = new THREE.Raycaster();
+let gKitchen, gImpianti, gQuote, ledMats = [], doors = [], winLeaves = [];
+let amb, sun, warm, spots = [], hoodLight;
+let cfg = 0, sera = false, showImp = false, showQuote = false, aperte = false, winOpen = false;
+let aniso = 1;
+
+/* ---------- texture procedurali (portate da bagni-3d.html) ---------- */
+let seed = 1;
+const rnd = ()=>{ seed = (seed*16807)%2147483647; return (seed-1)/2147483646; };
+function mkC(w,h){ const c=document.createElement('canvas'); c.width=w; c.height=h; return c; }
+function grain(g,w,h,amt){
+  const id=g.getImageData(0,0,w,h), d=id.data;
+  for(let p=0;p<d.length;p+=4){ const n=(Math.random()-0.5)*amt; d[p]+=n; d[p+1]+=n; d[p+2]+=n; }
+  g.putImageData(id,0,0);
+}
+function joints(g,w,h,cols,rows,col,gw){
+  g.fillStyle=col;
+  for(let i=0;i<=cols;i++) g.fillRect(i*w/cols-gw/2,0,gw,h);
+  for(let j=0;j<=rows;j++) g.fillRect(0,j*h/rows-gw/2,w,gw);
+}
+/* gres effetto cemento, stesse costanti del pavimento dei bagni (Mirage Glocal GC07 Sugar) */
+function cementTex(o){
+  const pxm=853.333, w=Math.round(o.mw*pxm), h=Math.round(o.mh*pxm), c=mkC(w,h), g=c.getContext('2d');
+  const cols=Math.round(o.mw/1.2), rows=Math.round(o.mh/0.6), tw=w/cols, th=h/rows; seed=o.seed;
+  for(let i=0;i<cols;i++) for(let j=0;j<rows;j++){
+    const v=Math.round((rnd()-0.5)*o.tv);
+    g.fillStyle='rgb('+(o.base[0]+v)+','+(o.base[1]+v)+','+(o.base[2]+v)+')';
+    g.fillRect(i*tw,j*th,tw,th);
+  }
+  const n=Math.round(900*w*h/(2048*2048));
+  for(let k=0;k<n;k++){
+    const x=rnd()*w, y=rnd()*h, r=15+rnd()*150, l=rnd()>0.5, a=(0.02+rnd()*o.blot).toFixed(3);
+    const q=g.createRadialGradient(x,y,0,x,y,r);
+    q.addColorStop(0,'rgba('+(l?o.lt:o.dk)+','+a+')'); q.addColorStop(1,'rgba('+(l?o.lt:o.dk)+',0)');
+    g.fillStyle=q; g.fillRect(x-r,y-r,2*r,2*r);
+  }
+  g.lineWidth=1; const ns=Math.round(14000*w*h/(2048*2048));
+  for(let k=0;k<ns;k++){
+    const x=rnd()*w, y=rnd()*h, len=8+rnd()*70, an=(rnd()-0.5)*0.5;
+    g.strokeStyle = rnd()>0.5 ? 'rgba('+o.lt+',0.07)' : 'rgba('+o.dk+',0.055)';
+    g.beginPath(); g.moveTo(x,y); g.lineTo(x+Math.cos(an)*len,y+Math.sin(an)*len); g.stroke();
+  }
+  grain(g,w,h,12);
+  joints(g,w,h,cols,rows,o.grout,2.2);
+  const t=new THREE.CanvasTexture(c);
+  t.wrapS=t.wrapT=THREE.RepeatWrapping; t.encoding=THREE.sRGBEncoding; t.anisotropy=aniso;
+  return t;
+}
+/* marmo chiaro del piano di lavoro, venature leggere come nel render */
+function marbleTex(){
+  const w=1024,h=1024,c=mkC(w,h),g=c.getContext('2d'); seed=91;
+  g.fillStyle='#f4f2ed'; g.fillRect(0,0,w,h);
+  for(let k=0;k<26;k++){
+    let x=rnd()*w, y=rnd()*h;
+    g.strokeStyle='rgba(168,164,156,'+(0.05+rnd()*0.10).toFixed(2)+')';
+    g.lineWidth=0.6+rnd()*2.2; g.beginPath(); g.moveTo(x,y);
+    for(let s=0;s<26;s++){ x+=(rnd()-0.35)*70; y+=(rnd()-0.5)*26; g.lineTo(x,y); }
+    g.stroke();
+  }
+  for(let k=0;k<300;k++){
+    const x=rnd()*w,y=rnd()*h,r=20+rnd()*120;
+    const q=g.createRadialGradient(x,y,0,x,y,r);
+    q.addColorStop(0,'rgba(255,255,255,0.10)'); q.addColorStop(1,'rgba(255,255,255,0)');
+    g.fillStyle=q; g.fillRect(x-r,y-r,2*r,2*r);
+  }
+  grain(g,w,h,6);
+  const t=new THREE.CanvasTexture(c);
+  t.wrapS=t.wrapT=THREE.RepeatWrapping; t.encoding=THREE.sRGBEncoding; t.anisotropy=aniso;
+  t.repeat.set(1/180,1/180);
+  return t;
+}
+
+/* ---------- materiali (colori letti sul render di riferimento) ---------- */
+let M = {};
+function buildMaterials(){
+  const std = o => new THREE.MeshStandardMaterial(o);
+  M = {
+    /* ante opache color sabbia/greige chiaro del render */
+    ante:    std({color:0xd6d0c5, roughness:0.74, metalness:0.02, envMapIntensity:0.5}),
+    corpo:   std({color:0xc4beb3, roughness:0.85}),
+    /* piano e alzatina in marmo chiaro */
+    top:     std({map:marbleTex(), color:0xffffff, roughness:0.30, metalness:0.04, envMapIntensity:0.7}),
+    /* gola/maniglia: profilo metallico bronzo satinato */
+    gola:    std({color:0x8d8270, roughness:0.35, metalness:0.7, envMapIntensity:1}),
+    zoccolo: std({color:0x6d675f, roughness:0.5, metalness:0.35}),
+    inox:    std({color:0xa9aeb1, roughness:0.32, metalness:0.85, envMapIntensity:1.1}),
+    /* vetro scuro bronzato di forno, micro e piano induzione */
+    vetro:   std({color:0x262223, roughness:0.14, metalness:0.45, envMapIntensity:1.2}),
+    display: new THREE.MeshStandardMaterial({color:0x0d1418, emissive:0x2d6f80, emissiveIntensity:0.6, roughness:0.2}),
+    muro:    std({color:0xf8f7f4, roughness:0.9, envMapIntensity:0.5}),
+    ceil:    std({color:0xf7f6f2, roughness:0.95}),
+    pav:     null,
+    legno:   std({color:0xa8773f, roughness:0.68}),
+    /* termocucina a legna smaltata rossa */
+    rosso:   std({color:0x9d1f1c, roughness:0.30, metalness:0.12, envMapIntensity:1.1}),
+    ghisa:   std({color:0x24242a, roughness:0.62, metalness:0.3}),
+    fuoco:   std({color:0xff8a1f, emissive:0xff6a00, emissiveIntensity:1.0}),
+    vetroW:  std({color:0xdfe9ee, transparent:true, opacity:0.25, roughness:0.05, metalness:0.2, depthWrite:false}),
+    lacca:   std({color:0xf4f2ee, roughness:0.42}),
+    dl:      std({color:0xffffff, emissive:0xfff4e6, emissiveIntensity:1.05}),
+    bianco:  std({color:0xf3f3f0, roughness:0.32, metalness:0.1})
+  };
+  M.pav = std({ map: cementTex({mw:2.4,mh:2.4,base:[200,200,198],lt:'250,250,250',dk:'104,104,106',
+                                grout:'rgb(163,164,163)',tv:9,blot:0.05,seed:23}),
+                roughness:0.7, metalness:0, envMapIntensity:0.45 });
+  M.pav.map.repeat.set(ROOM.w/240, ROOM.d/240);
+}
+
+function box(w,h,d,mat,x,y,z,parent,info){
+  const m = new THREE.Mesh(new THREE.BoxGeometry(w,h,d), mat);
+  m.position.set(x+w/2, y+h/2, z+d/2);
+  m.castShadow = true; m.receiveShadow = true;
+  if(info) m.userData.info = info;
+  (parent||gKitchen).add(m);
+  return m;
+}
+/* box in coordinate locali di un gruppo (già centrato) */
+function lbox(w,h,d,mat,x,y,z,parent,info){
+  const m = new THREE.Mesh(new THREE.BoxGeometry(w,h,d), mat);
+  m.position.set(x,y,z); m.castShadow=true; m.receiveShadow=true;
+  if(info) m.userData.info = info;
+  parent.add(m); return m;
+}
+
+function init(){
+  renderer = new THREE.WebGLRenderer({antialias:true, powerPreference:'high-performance'});
+  renderer.setPixelRatio(Math.min(devicePixelRatio||1,2));
+  renderer.setSize(innerWidth, innerHeight);
+  renderer.outputEncoding = THREE.sRGBEncoding;
+  renderer.toneMapping = THREE.ACESFilmicToneMapping;
+  renderer.toneMappingExposure = 0.97;
+  renderer.shadowMap.enabled = true;
+  renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+  aniso = renderer.capabilities ? renderer.capabilities.getMaxAnisotropy() : 1;
+  document.body.appendChild(renderer.domElement);
+
+  scene = new THREE.Scene();
+  scene.background = new THREE.Color(0xe4e1da);
+  camera = new THREE.PerspectiveCamera(55, innerWidth/innerHeight, 1, 4000);
+
+  buildMaterials();
+  buildLights();
+  buildRoom();
+  gKitchen = new THREE.Group(); scene.add(gKitchen);
+  gImpianti = new THREE.Group(); gImpianti.visible = false; scene.add(gImpianti);
+  gQuote = new THREE.Group(); gQuote.visible = false; scene.add(gQuote);
+  buildImpianti(); buildQuote();
+  build();
+
+  setView('ingresso');
+  addEvents();
+  animate();
+  document.getElementById('loader').style.display='none';
+  document.getElementById('intro').style.display='flex';
+}
+
+/* ---------- luci ----------
+   Punti luce verificati sul render di riferimento:
+   · faretto a incasso a soffitto (nel render se ne vede uno acceso: qui 2, sulle due zone di lavoro)
+   · strip LED continua sotto i pensili, che gira sull'angolo fra le due pareti
+   · luce della cappa sul piano cottura
+   · illuminazione interna della scaffalatura a giorno (configurazione 3)
+   Sugli schemi: “USCITA LED” due volte sulla parete cottura e “LUCE LED H.217”.      */
+const DL = [[110,200],[155,110]];
+function buildLights(){
+  amb = new THREE.HemisphereLight(0xfffaf2, 0xd2d0ca, 0.42); scene.add(amb);
+  sun = new THREE.DirectionalLight(0xffefd6, 1.25);
+  sun.position.set(-420, 380, 230); sun.target.position.set(120, 60, 200);
+  sun.castShadow = true; sun.shadow.mapSize.set(2048,2048);
+  Object.assign(sun.shadow.camera,{left:-350,right:600,top:520,bottom:-120,near:50,far:1400});
+  sun.shadow.bias=-0.0004; sun.shadow.normalBias=2;
+  scene.add(sun); scene.add(sun.target);
+
+  DL.forEach(p=>{
+    const sp = new THREE.SpotLight(0xfff0dd, 0.0, 600, 1.0, 0.9, 1);
+    sp.position.set(p[0], ROOM.h-2, p[1]);
+    sp.target.position.set(p[0], 0, p[1]);
+    scene.add(sp); scene.add(sp.target); spots.push(sp);
+  });
+  hoodLight = new THREE.SpotLight(0xfff1dc, 0.0, 300, 1.1, 0.9, 1);
+  hoodLight.position.set(HOB_X, 146, 28); hoodLight.target.position.set(HOB_X, H_TOP, 30);
+  scene.add(hoodLight); scene.add(hoodLight.target);
+
+  warm = new THREE.PointLight(0xffc98a, 0, 700); warm.position.set(240, 235, 320); scene.add(warm);
+}
+
+/* ---------- stanza ---------- */
+function buildRoom(){
+  const g = new THREE.Group(); scene.add(g); buildRoom.g = g;
+
+  const floor = new THREE.Mesh(new THREE.PlaneGeometry(ROOM.w, ROOM.d), M.pav);
+  floor.rotation.x = -Math.PI/2;
+  floor.position.set(ROOM.w/2 - 40, 0, ROOM.d/2 - 40);
+  floor.receiveShadow = true;
+  floor.userData.info = ['Mirage Glocal GC07 Sugar, spazzolato','Gres porcellanato effetto cemento 60 × 120 cm: stesso pavimento dei due bagni, per continuità fra gli ambienti.'];
+  g.add(floor);
+
+  const wB = new THREE.Mesh(new THREE.PlaneGeometry(ROOM.w, ROOM.h), M.muro);
+  wB.position.set(ROOM.w/2 - 40, ROOM.h/2, -1); wB.receiveShadow = true;
+  wB.userData.info = ['Pareti','Pittura bianca, come nei bagni sopra il rivestimento.'];
+  g.add(wB);
+
+  const parts = [
+    { z0:-40,    len:WIN.z0+40,        y0:0,      h:ROOM.h        },
+    { z0:WIN.z1, len:ROOM.d-40-WIN.z1, y0:0,      h:ROOM.h        },
+    { z0:WIN.z0, len:WIN.z1-WIN.z0,    y0:0,      h:WIN.y0        },
+    { z0:WIN.z0, len:WIN.z1-WIN.z0,    y0:WIN.y1, h:ROOM.h-WIN.y1 }
+  ];
+  parts.forEach(p=>{
+    const m = new THREE.Mesh(new THREE.PlaneGeometry(p.len, p.h), M.muro);
+    m.rotation.y = Math.PI/2;
+    m.position.set(-1, p.y0 + p.h/2, p.z0 + p.len/2);
+    m.receiveShadow = true;
+    m.userData.info = ['Pareti','Pittura bianca, come nei bagni sopra il rivestimento.'];
+    g.add(m);
+  });
+
+  const c = new THREE.Mesh(new THREE.PlaneGeometry(ROOM.w, ROOM.d), M.ceil);
+  c.rotation.x = Math.PI/2; c.position.set(ROOM.w/2-40, ROOM.h, ROOM.d/2-40); g.add(c);
+
+  buildWindow(g);
+  buildDownlights(g);
+}
+
+/* finestra a due ante, stessa estetica delle finestre dei bagni:
+   telaio laccato bianco, montanti da 5 cm, vetro satinato chiaro, maniglia cromata,
+   ante a battente che ruotano davvero verso l'interno */
+function buildWindow(g){
+  const W0 = WIN.z0, W1 = WIN.z1, Y0 = WIN.y0, Y1 = WIN.y1, mid = (W0+W1)/2, THK = 14;
+  const win = new THREE.Group(); g.add(win);
+  win.userData.info = ['Finestra a due ante','Luce 120 × 125 cm, davanzale a 110 cm: stessa estetica delle finestre dei bagni (telaio laccato, montanti da 5 cm, maniglia cromata). Misure da verificare in loco.'];
+
+  /* davanzale e sguincio */
+  box(THK+6, 4, W1-W0+12, M.top, -THK-4, Y0-4, W0-6, g, ['Davanzale','In marmo chiaro, come il piano di lavoro.']);
+  box(THK, Y1-Y0+8, 6, M.muro, -THK-1, Y0, W0-6, g);
+  box(THK, Y1-Y0+8, 6, M.muro, -THK-1, Y0, W1, g);
+  box(THK, 6, W1-W0+12, M.muro, -THK-1, Y1, W0-6, g);
+
+  /* telaio fisso + montante centrale */
+  const F = -THK-1;
+  box(5, Y1-Y0, 5, M.lacca, F, Y0, W0, g);
+  box(5, Y1-Y0, 5, M.lacca, F, Y0, W1-5, g);
+  box(5, 5, W1-W0, M.lacca, F, Y1-5, W0, g);
+  box(5, 5, W1-W0, M.lacca, F, Y0, W0, g);
+  box(5, Y1-Y0, 4, M.lacca, F, Y0, mid-2, g);
+
+  /* due ante a battente, cerniere sui montanti esterni */
+  [[W0+5, mid-2, 1],[W1-5, mid+2, -1]].forEach((s,i)=>{
+    const hinge = s[0], edge = s[1], dir = s[2];
+    const leaf = new THREE.Group();
+    leaf.position.set(F+5, 0, hinge);
+    g.add(leaf); winLeaves.push({g:leaf, dir:dir});
+    const wd = Math.abs(edge - hinge), sgn = dir;
+    const put = (x,y0,h,z0,zl,mat)=> {
+      const m = new THREE.Mesh(new THREE.BoxGeometry(4.5,h,zl), mat);
+      m.position.set(x, y0+h/2, sgn*(z0+zl/2));
+      m.castShadow=true; m.receiveShadow=true; leaf.add(m);
+      m.userData.info = ['Anta della finestra','Anta a battente che si apre verso l\'interno, come nei bagni.'];
+      return m;
+    };
+    put(2.5, Y0+2, Y1-Y0-4, 0, 5, M.lacca);
+    put(2.5, Y0+2, Y1-Y0-4, wd-5, 5, M.lacca);
+    put(2.5, Y1-7, 5, 5, wd-10, M.lacca);
+    put(2.5, Y0+2, 5, 5, wd-10, M.lacca);
+    const gl = new THREE.Mesh(new THREE.BoxGeometry(1.2, Y1-Y0-14, wd-10), M.vetroW);
+    gl.position.set(2.5, (Y0+Y1)/2, sgn*(5+(wd-10)/2)); leaf.add(gl);
+    const hd = new THREE.Mesh(new THREE.BoxGeometry(3,12,2.4), M.inox);
+    hd.position.set(6.5, (Y0+Y1)/2, sgn*(wd-7)); leaf.add(hd);
+  });
+}
+
+function buildDownlights(g){
+  const info = ['Faretti a incasso','A soffitto sulle due zone di lavoro: uno è visibile acceso nel render di riferimento.'];
+  DL.forEach(p=>{
+    const m = new THREE.Mesh(new THREE.CircleGeometry(4.5,32).rotateX(Math.PI/2), M.dl);
+    m.position.set(p[0], ROOM.h-0.3, p[1]); m.userData.info = info; g.add(m);
+    const r = new THREE.Mesh(new THREE.RingGeometry(4.5,5.6,32).rotateX(Math.PI/2), M.bianco);
+    r.position.set(p[0], ROOM.h-0.25, p[1]); r.userData.info = info; g.add(r);
+    ledMats.push(M.dl);
+  });
+}
+
+/* ---------- cucina ---------- */
+function build(){
+  while(gKitchen.children.length) gKitchen.remove(gKitchen.children[0]);
+  ledMats = [M.dl]; doors = [];
+  buildBasiB(); buildBasiA(); buildTop(); buildColonne(); buildPensili(); buildTermocucina();
+  applyLight();
+}
+
+function frontale(w,h,d,x,y,z,info){
+  const m = box(w,h,d,M.ante,x,y,z,gKitchen,info);
+  box(w-4, 1.6, 1.2, M.gola, x+2, y+h-4, z+d, gKitchen);
+  return m;
+}
+
+function buildBasiB(){
+  RUN_B.forEach(mod=>{
+    if(mod.type==='oven'||mod.type==='fridge') return;
+    if(mod.type==='fill'){
+      box(mod.w, H_TOP-H_PLINTH, DEPTH_B, M.ante, mod.x0, H_PLINTH, 0, gKitchen, mod.info);
+      return;
+    }
+    box(mod.w, 9, DEPTH_B-6, M.zoccolo, mod.x0, 0, 3, gKitchen);
+    box(mod.w, H_TOP-H_PLINTH-DEPTH_T, DEPTH_B-2, M.corpo, mod.x0, H_PLINTH, 0, gKitchen);
+    const n = mod.w>100 ? 2 : 1, ww = mod.w/n;
+    for(let i=0;i<n;i++){
+      doors.push({m:frontale(ww-1.2, 26, 2, mod.x0+i*ww, 59, DEPTH_B-2, mod.info), axis:'z', open:32});
+      doors.push({m:frontale(ww-1.2, 45, 2, mod.x0+i*ww, 12, DEPTH_B-2, mod.info), axis:'z', open:44});
+    }
+  });
+  box(75, 1.2, 50, M.vetro, HOB_X-37.5, H_TOP, 5, gKitchen,
+    ['Piano a induzione','Vetro nero come nel render, asse 155 cm (schema “155 CAPPA H.200”). Larghezza 75 ipotizzata nel modulo da 120.']);
+}
+
+function buildBasiA(){
+  RUN_A.forEach(mod=>{
+    box(DEPTH_B-6, 9, mod.w, M.zoccolo, 3, 0, mod.z0, gKitchen);
+    box(DEPTH_B-2, H_TOP-H_PLINTH-DEPTH_T, mod.w, M.corpo, 0, H_PLINTH, mod.z0, gKitchen);
+    const front = (h,y)=>{
+      const m = box(2, h, mod.w-1.2, M.ante, DEPTH_B-2, y, mod.z0, gKitchen, mod.info);
+      box(1.4, 1.6, mod.w-6, M.gola, DEPTH_B, y+h-4, mod.z0+3, gKitchen);
+      return m;
+    };
+    if(mod.type==='dw'){
+      doors.push({m:front(H_TOP-H_PLINTH-DEPTH_T-2, H_PLINTH), axis:'x', open:28});
+    } else if(mod.type==='sink'){
+      doors.push({m:front(45,12), axis:'x', open:34});
+    } else {
+      doors.push({m:front(26,59), axis:'x', open:30});
+      doors.push({m:front(45,12), axis:'x', open:40});
+    }
+  });
+  buildLavello();
+}
+
+/* lavello a incasso: vasca reale dentro il foro del piano, bordo, scarico e miscelatore */
+function buildLavello(){
+  const yT = H_TOP-DEPTH_T, yB = yT - SINK.dp, W = 1.5;
+  const info = ['Lavello a vasca unica','Incassato nel piano: foro 42 × 70 cm, vasca profonda 18, asse 200 cm sotto la finestra. Presa/scarico sottolavello a quota 45÷50 come da schema.'];
+  /* bordo a filo piano */
+  box(SINK.x1-SINK.x0+5, 1.2, SINK.z1-SINK.z0+5, M.inox, SINK.x0-2.5, yT-1.2, SINK.z0-2.5, gKitchen, info);
+  /* pareti della vasca */
+  box(W, SINK.dp, SINK.z1-SINK.z0, M.inox, SINK.x0, yB, SINK.z0, gKitchen, info);
+  box(W, SINK.dp, SINK.z1-SINK.z0, M.inox, SINK.x1-W, yB, SINK.z0, gKitchen, info);
+  box(SINK.x1-SINK.x0, SINK.dp, W, M.inox, SINK.x0, yB, SINK.z0, gKitchen, info);
+  box(SINK.x1-SINK.x0, SINK.dp, W, M.inox, SINK.x0, yB, SINK.z1-W, gKitchen, info);
+  /* fondo leggermente inclinato verso lo scarico */
+  box(SINK.x1-SINK.x0-2*W, 1.2, SINK.z1-SINK.z0-2*W, M.inox, SINK.x0+W, yB, SINK.z0+W, gKitchen, info);
+  const dr = new THREE.Mesh(new THREE.CylinderGeometry(4,4,1.6,20), M.ghisa);
+  dr.position.set((SINK.x0+SINK.x1)/2, yB+1.6, SINK_Z); gKitchen.add(dr);
+  dr.userData.info = ['Piletta di scarico','In asse alla vasca; sotto, sifone e presa a quota 45÷50.'];
+  /* miscelatore sulla striscia di piano dietro la vasca */
+  const bs = new THREE.Mesh(new THREE.CylinderGeometry(2.6,2.8,1.6,20), M.inox);
+  bs.position.set(6, H_TOP+0.8, SINK_Z); gKitchen.add(bs);
+  const tap = new THREE.Mesh(new THREE.CylinderGeometry(1.6,1.6,30,16), M.inox);
+  tap.position.set(6, H_TOP+16, SINK_Z); gKitchen.add(tap);
+  tap.userData.info = ['Miscelatore','Canna alta con bocca girevole, in asse alla vasca.'];
+  const arc = new THREE.Mesh(new THREE.TorusGeometry(9,1.6,10,20,Math.PI/2), M.inox);
+  arc.position.set(6, H_TOP+31, SINK_Z); arc.rotation.y = Math.PI/2; arc.rotation.z = Math.PI;
+  gKitchen.add(arc);
+  const sp = new THREE.Mesh(new THREE.CylinderGeometry(1.4,1.4,5,14), M.inox);
+  sp.position.set(15, H_TOP+29, SINK_Z); gKitchen.add(sp);
+}
+
+function buildTop(){
+  const infoA = ['Piano di lavoro · parete lavello','Sviluppo totale 395 cm compreso l\'angolo, profondità 60, con foro per il lavello a incasso.'];
+  box(352, DEPTH_T, DEPTH_B, M.top, 0, H_TOP-DEPTH_T, 0, gKitchen,
+    ['Piano di lavoro · parete cottura','Marmo chiaro come nel render, sviluppo 352 cm, profondità 60, quota 90 (ipotesi).']);
+  /* il piano della parete lavello è in quattro pezzi, così il foro della vasca è reale */
+  const y = H_TOP-DEPTH_T, zA = DEPTH_B, zE = 395;
+  box(SINK.x0, DEPTH_T, zE-zA, M.top, 0, y, zA, gKitchen, infoA);
+  box(DEPTH_B-SINK.x1, DEPTH_T, zE-zA, M.top, SINK.x1, y, zA, gKitchen, infoA);
+  box(SINK.x1-SINK.x0, DEPTH_T, SINK.z0-zA, M.top, SINK.x0, y, zA, gKitchen, infoA);
+  box(SINK.x1-SINK.x0, DEPTH_T, zE-SINK.z1, M.top, SINK.x0, y, SINK.z1, gKitchen, infoA);
+  box(352, 6, 1.5, M.top, 0, H_TOP, 0, gKitchen);
+  box(1.5, 6, 395-DEPTH_B, M.top, 0, H_TOP, DEPTH_B, gKitchen);
+}
+
+function buildColonne(){
+  const h = H_TALL;
+  RUN_B.forEach(mod=>{
+    if(mod.type!=='oven' && mod.type!=='fridge') return;
+    box(mod.w, 9, DEPTH_B-6, M.zoccolo, mod.x0, 0, 3, gKitchen);
+    box(mod.w, h-H_PLINTH, DEPTH_B-2, M.corpo, mod.x0, H_PLINTH, 0, gKitchen, mod.info);
+    if(mod.type==='oven'){
+      doors.push({m:frontale(mod.w-1.2, 48, 2, mod.x0, H_PLINTH, DEPTH_B-2, mod.info), axis:'z', open:30});
+      /* forno e microonde: frontale in vetro scuro con cornice e maniglia in acciaio */
+      const app = (y,hh,info)=>{
+        box(mod.w-4, hh, 3, M.vetro, mod.x0+2, y, DEPTH_B-2, gKitchen, info);
+        box(mod.w-6, 2.2, 3.4, M.inox, mod.x0+3, y+hh-7, DEPTH_B-2, gKitchen);
+        box(mod.w-10, 2.6, 1.6, M.display, mod.x0+5, y+hh-13, DEPTH_B+1, gKitchen);
+      };
+      app(62, 55, ['Forno','Vetro scuro e profilo in acciaio, come nel render. Alimentazione a H.90 (schema).']);
+      app(142, 38, ['Microonde / combinato','Alimentazione a H.160 (schema “245 MICRO H.160”).']);
+      doors.push({m:frontale(mod.w-1.2, 30, 2, mod.x0, 186, DEPTH_B-2, mod.info), axis:'z', open:26});
+    } else {
+      doors.push({m:frontale(mod.w-1.2, 130, 2, mod.x0, 12, DEPTH_B-2,
+        ['Frigo a colonna','Anta a pannello integrata come nel render; presa a H.160 (schema “305 FRIGO H.160”).']), axis:'z', open:45});
+      doors.push({m:frontale(mod.w-1.2, h-146, 2, mod.x0, 146, DEPTH_B-2, mod.info), axis:'z', open:28});
+    }
+  });
+}
+
+function ledStrip(x,y,z,len,horiz,info){
+  const mat = new THREE.MeshStandardMaterial({color:0xfff6e6, emissive:0xffce80, emissiveIntensity:0});
+  ledMats.push(mat);
+  const m = new THREE.Mesh(new THREE.BoxGeometry(horiz?len:3, 1.4, horiz?3:len), mat);
+  m.position.set(x, y, z);
+  m.userData.info = info || ['Strip LED sottopensile','Linea continua sotto i pensili, che gira sull\'angolo fra le due pareti, come nel render. Sugli schemi: “USCITA LED”.'];
+  gKitchen.add(m);
+}
+
+function buildPensili(){
+  const y = H_WALL_UNIT, hh = HU;
+
+  box(110, hh, DEPTH_W, M.ante, 0, y, 0, gKitchen,
+    ['Pensili parete cottura','Due ante da 55, quota inferiore 145, altezza '+hh+' cm (ipotesi).']);
+  box(1.6, 1.6, DEPTH_W, M.gola, 54, y+hh-6, 0, gKitchen);
+  box(DEPTH_W, hh, 75, M.ante, 0, y, DEPTH_B, gKitchen,
+    ['Pensile parete lavello','Tra l\'angolo e la finestra. Dopo la finestra, sopra la termocucina, la parete resta libera.']);
+  ledStrip(55, y-1.4, DEPTH_W-2, 110, true);
+  ledStrip(DEPTH_W-2, y-1.4, DEPTH_B+37.5, 75, false);
+
+  box(90, 26, 50, M.inox, HOB_X-45, 148, 2, gKitchen,
+    ['Cappa','Asse 155 cm, attacco elettrico a H.200 come da schema. Nel render è il blocco in acciaio sopra il piano.']);
+  box(30, ROOM.h-174, 28, M.inox, HOB_X-15, 174, 4, gKitchen);
+  const hl = new THREE.MeshStandardMaterial({color:0xfff6e6, emissive:0xffce80, emissiveIntensity:0});
+  ledMats.push(hl);
+  const hm = new THREE.Mesh(new THREE.BoxGeometry(60,1,30), hl);
+  hm.position.set(HOB_X, 147.5, 27); gKitchen.add(hm);
+  hm.userData.info = ['Luce della cappa','Illumina il piano cottura: è il terzo punto luce visibile nel render.'];
+
+  /* uscita LED a H.217, sopra le colonne */
+  ledStrip(215+68.5, 217, DEPTH_B+2, 137, true,
+    ['Uscita LED H.217','Riportata sullo schema a mano: linea luminosa sopra le colonne.']);
+}
+
+/* ---------- termocucina a legna, smaltata rossa, spalle alla parete finestra ---------- */
+function buildTermocucina(){
+  const g = new THREE.Group();
+  g.position.set(STOVE.cx, 0, STOVE.cz);
+  g.rotation.y = STOVE.rot;       /* spalle al muro, fronte (+x locale) verso la stanza */
+  gKitchen.add(g);
+  const W = STOVE.w, D = STOVE.d, HB = 85;   /* larghezza 80, profondità 60, piano a 85 */
+  const info = ['Termocucina a legna 80','Smaltata rossa, larghezza 80 × profondità 60, piano in ghisa a 85 cm. Spalle alla parete della finestra e fronte allineato al resto della mobilia (filo 60). Nello schema la zona riservata è 100 cm: restano 20 cm liberi verso il fondo.'];
+  g.userData.info = info;
+
+  lbox(D, 10, W, M.ghisa, 0, 5, 0, g, info);                    /* zoccolo */
+  lbox(D, HB-10, W, M.rosso, 0, 10+(HB-10)/2, 0, g, info);      /* corpo smaltato */
+  lbox(D+4, 5, W+4, M.ghisa, 0, HB+2.5, 0, g,
+    ['Piano in ghisa','Piastra radiante con cerchi concentrici, sopra il focolare.']);
+  /* alzatina posteriore */
+  lbox(12, 22, W+4, M.rosso, -D/2+6, HB+16, 0, g, info);
+  /* porta del focolare con vetro e porta del forno */
+  lbox(2, 30, W*0.42, M.ghisa, D/2+1, 58, -W*0.22, g, ['Focolare','Porta in ghisa con vetro ceramico.']);
+  lbox(1.5, 22, W*0.32, M.fuoco, D/2+2.2, 58, -W*0.22, g);
+  lbox(2, 30, W*0.42, M.ghisa, D/2+1, 26, -W*0.22, g, ['Cassetto cenere','Sotto il focolare.']);
+  lbox(2, 46, W*0.44, M.ghisa, D/2+1, 46, W*0.24, g, ['Forno a legna','Porta con vetro e maniglia cromata.']);
+  lbox(1.5, 30, W*0.34, M.vetro, D/2+2.2, 46, W*0.24, g);
+  /* maniglione anteriore cromato */
+  const bar = new THREE.Mesh(new THREE.CylinderGeometry(1.4,1.4,W+2,14), M.inox);
+  bar.rotation.x = Math.PI/2; bar.position.set(D/2+7, 72, 0); g.add(bar);
+  [-1,1].forEach(s=>{
+    const st = new THREE.Mesh(new THREE.BoxGeometry(8,3,3), M.inox);
+    st.position.set(D/2+3.5, 72, s*(W/2-2)); g.add(st);
+  });
+  /* canna fumaria: uscita sul lato destro guardando la termocucina, poi salita a soffitto */
+  const pz = -(W/2-12), px = -D/2+16;
+  const pinfo = ['Canna fumaria','Uscita Ø 14 sul lato destro del piano (guardando la termocucina), raccordo orizzontale e salita verticale a soffitto, in appoggio alla parete della finestra.'];
+  const stub = new THREE.Mesh(new THREE.CylinderGeometry(7,7,W/2-12,16), M.ghisa);
+  stub.rotation.x = Math.PI/2; stub.position.set(px, HB+14, pz/2); g.add(stub);
+  stub.userData.info = pinfo;
+  const pipe = new THREE.Mesh(new THREE.CylinderGeometry(7,7,ROOM.h-HB-14,16), M.ghisa);
+  pipe.position.set(px, HB+14+(ROOM.h-HB-14)/2, pz); g.add(pipe);
+  pipe.userData.info = pinfo;
+  const rosone = new THREE.Mesh(new THREE.CylinderGeometry(9,9,3,16), M.ghisa);
+  rosone.position.set(px, HB+14, pz); g.add(rosone);
+}
+
+/* ---------- impianti ---------- */
+function buildImpianti(){
+  IMPIANTI.forEach(p=>{
+    const gr = new THREE.Group();
+    const m = new THREE.Mesh(new THREE.BoxGeometry(8,8,1.5), new THREE.MeshBasicMaterial({color:0xd1462f}));
+    if(p.wall==='B') m.position.set(p.p, p.y, 1);
+    else { m.position.set(1, p.y, p.p); m.rotation.y = Math.PI/2; }
+    m.userData.info = [p.t, 'Punto rilevato dagli schemi a mano: ' + p.p + ' cm dallo spigolo, quota ' + p.y + ' cm.'];
+    gr.add(m);
+    const s = label(p.t);
+    s.position.copy(m.position).add(new THREE.Vector3(p.wall==='B'?0:6, 11, p.wall==='B'?6:0));
+    gr.add(s);
+    gImpianti.add(gr);
+  });
+  DL.forEach(p=>{
+    const s = label('FARETTO');
+    s.position.set(p[0], ROOM.h-10, p[1]); gImpianti.add(s);
+  });
+}
+function label(txt, scale){
+  const c = document.createElement('canvas'); c.width=512; c.height=96;
+  const x = c.getContext('2d');
+  x.fillStyle='rgba(43,40,36,.90)'; x.strokeStyle='#d1462f'; x.lineWidth=3;
+  roundRect(x,4,4,504,88,14); x.fill(); x.stroke();
+  x.fillStyle='#fbf9f5'; x.font='bold 44px -apple-system,Segoe UI,Roboto,sans-serif';
+  x.textAlign='center'; x.textBaseline='middle'; x.fillText(txt,256,50);
+  const t = new THREE.CanvasTexture(c);
+  const sp = new THREE.Sprite(new THREE.SpriteMaterial({map:t, depthTest:false, transparent:true}));
+  const s = scale||1; sp.scale.set(56*s, 10.5*s, 1);
+  return sp;
+}
+function roundRect(x,a,b,w,h,r){x.beginPath();x.moveTo(a+r,b);x.arcTo(a+w,b,a+w,b+h,r);x.arcTo(a+w,b+h,a,b+h,r);x.arcTo(a,b+h,a,b,r);x.arcTo(a,b,a+w,b,r);x.closePath();}
+
+/* ---------- quote in pianta ---------- */
+const QUOTE = [
+  {wall:'B', a:0,   b:95,  t:'95'},   {wall:'B', a:95, b:215, t:'120'},
+  {wall:'B', a:215, b:275, t:'60 forno'}, {wall:'B', a:275, b:335, t:'60 frigo'},
+  {wall:'B', a:335, b:352, t:'17'},
+  {wall:'A', a:0,   b:95,  t:'95'},   {wall:'A', a:95, b:155, t:'60 LV'},
+  {wall:'A', a:155, b:245, t:'90 lavello'}, {wall:'A', a:245, b:295, t:'50'},
+  {wall:'A', a:295, b:375, t:'80 termocucina'}
+];
+function buildQuote(){
+  const mat = new THREE.LineBasicMaterial({color:0x34302b});
+  QUOTE.forEach(q=>{
+    const off = 78, y = 92, isB = q.wall==='B', pts = [];
+    if(isB) pts.push(new THREE.Vector3(q.a, y, off), new THREE.Vector3(q.b, y, off));
+    else    pts.push(new THREE.Vector3(off, y, q.a), new THREE.Vector3(off, y, q.b));
+    gQuote.add(new THREE.Line(new THREE.BufferGeometry().setFromPoints(pts), mat));
+    [q.a,q.b].forEach(v=>{
+      const p = isB ? [new THREE.Vector3(v,y,off-7), new THREE.Vector3(v,y,off+7)]
+                    : [new THREE.Vector3(off-7,y,v), new THREE.Vector3(off+7,y,v)];
+      gQuote.add(new THREE.Line(new THREE.BufferGeometry().setFromPoints(p), mat));
+    });
+    const s = label(q.t, .72);
+    if(isB) s.position.set((q.a+q.b)/2, y+2, off+14);
+    else    s.position.set(off+14, y+2, (q.a+q.b)/2);
+    gQuote.add(s);
+  });
+  const t1 = label('parete cottura 352', .9); t1.position.set(176, 94, 108); gQuote.add(t1);
+  const t2 = label('parete lavello 395', .9); t2.position.set(108, 94, 197); gQuote.add(t2);
+}
+
+/* ---------- luce giorno / sera ---------- */
+function applyLight(){
+  amb.intensity = sera ? 0.12 : 0.42;
+  sun.intensity = sera ? 0.05 : 1.25;
+  warm.intensity = sera ? 1.4 : 0;
+  spots.forEach(s=> s.intensity = sera ? 0.9 : 0.25);
+  hoodLight.intensity = sera ? 0.8 : 0.2;
+  scene.background = new THREE.Color(sera ? 0x22252b : 0xe4e1da);
+  ledMats.forEach(m=>{ if(m!==M.dl) m.emissiveIntensity = sera ? 1.8 : 0.15; });
+  M.dl.emissiveIntensity = sera ? 1.6 : 0.9;
+  M.fuoco.emissiveIntensity = sera ? 1.7 : 0.9;
+}
+
+/* ---------- viste ---------- */
+const VIEWS = {
+  ingresso:{p:[430, 235, 540],  t:[150, 100, 120], n:'Vista d\'ingresso'},
+  lavello: {p:[330, 170, 300],  t:[30, 100, 220],  n:'Zona lavello · asse 200'},
+  cottura: {p:[210, 160, 330],  t:[155, 110, 30],  n:'Zona cottura · asse 155'},
+  colonne: {p:[430, 175, 320],  t:[275, 120, 30],  n:'Colonne forno e frigo'},
+  termo:   {p:[330, 150, 460],  t:[60, 80, 350],   n:'Termocucina a legna'},
+  pianta:  {p:[176, 620, 197],  t:[176, 0, 197],   n:'Pianta'}
+};
+let camT = new THREE.Vector3(), tgt = new THREE.Vector3(), tgtT = new THREE.Vector3();
+function setView(k){
+  const v = VIEWS[k];
+  camT.set(v.p[0], v.p[1], v.p[2]); tgtT.set(v.t[0], v.t[1], v.t[2]);
+  document.getElementById('topTitle').textContent = 'Cucina · ' + v.n;
+  if(!camera.userData.init){ camera.position.copy(camT); tgt.copy(tgtT); camera.userData.init=1; }
+}
+
+/* ---------- controlli ---------- */
+let drag=false, px=0, py=0, sph = new THREE.Spherical(), pinch=0;
+function addEvents(){
+  const el = renderer.domElement;
+  el.addEventListener('pointerdown', e=>{ drag=true; px=e.clientX; py=e.clientY; });
+  el.addEventListener('pointermove', e=>{
+    if(!drag) return;
+    const dx=(e.clientX-px)/180, dy=(e.clientY-py)/240; px=e.clientX; py=e.clientY;
+    sph.setFromVector3(camera.position.clone().sub(tgt));
+    sph.theta -= dx; sph.phi = Math.max(.15, Math.min(Math.PI/2-.02, sph.phi - dy));
+    camera.position.copy(tgt.clone().add(new THREE.Vector3().setFromSpherical(sph)));
+    camT.copy(camera.position);
+  });
+  el.addEventListener('pointerup', ()=> drag=false);
+  el.addEventListener('wheel', e=> zoom(1 + Math.sign(e.deltaY)*.08), {passive:true});
+  el.addEventListener('touchmove', e=>{
+    if(e.touches.length===2){
+      const d = Math.hypot(e.touches[0].clientX-e.touches[1].clientX, e.touches[0].clientY-e.touches[1].clientY);
+      if(pinch) zoom(pinch/d); pinch = d;
+    }
+  }, {passive:true});
+  el.addEventListener('touchend', ()=> pinch=0);
+  el.addEventListener('click', pick);
+
+  addEventListener('resize', ()=>{
+    camera.aspect = innerWidth/innerHeight; camera.updateProjectionMatrix();
+    renderer.setSize(innerWidth, innerHeight);
+  });
+
+  document.getElementById('go').onclick = ()=>{
+    document.getElementById('intro').style.display='none';
+    document.getElementById('ui').style.display='flex';
+    document.getElementById('top').style.display='block';
+  };
+  document.getElementById('infoX').onclick = ()=> document.getElementById('info').style.display='none';
+
+  document.querySelectorAll('#rowViews .chip').forEach(b=> b.onclick = ()=>{
+    document.querySelectorAll('#rowViews .chip').forEach(x=>x.classList.remove('on'));
+    b.classList.add('on'); setView(b.dataset.view);
+  });
+  document.querySelectorAll('#rowCfg .chip').forEach(b=> b.onclick = ()=>{
+    document.querySelectorAll('#rowCfg .chip').forEach(x=>x.classList.remove('on'));
+    b.classList.add('on'); cfg = +b.dataset.cfg; aperte=false; build();
+  });
+  document.querySelectorAll('#rowAct .chip').forEach(b=> b.onclick = ()=>{
+    const a = b.dataset.act;
+    if(a==='dxf'){ dxf(); return; }
+    if(a==='impianti'){ showImp=!showImp; gImpianti.visible=showImp; b.classList.toggle('on',showImp); }
+    if(a==='quote'){ showQuote=!showQuote; gQuote.visible=showQuote; b.classList.toggle('on',showQuote);
+      if(showQuote){ document.querySelectorAll('#rowViews .chip').forEach(x=>x.classList.toggle('on', x.dataset.view==='pianta')); setView('pianta'); } }
+    if(a==='sera'){ sera=!sera; applyLight(); b.classList.toggle('on',sera); }
+    if(a==='finestra'){ winOpen=!winOpen; b.classList.toggle('on',winOpen); b.textContent = winOpen?'Chiudi finestra':'Apri finestra'; }
+    if(a==='ante'){ aperte=!aperte; b.classList.toggle('on',aperte); b.textContent = aperte?'Chiudi ante':'Apri ante'; }
+  });
+}
+function zoom(f){
+  const off = camera.position.clone().sub(tgt).multiplyScalar(f), d = off.length();
+  if(d>90 && d<1500){ camera.position.copy(tgt.clone().add(off)); camT.copy(camera.position); }
+}
+function pick(e){
+  const m = new THREE.Vector2((e.clientX/innerWidth)*2-1, -(e.clientY/innerHeight)*2+1);
+  raycaster.setFromCamera(m, camera);
+  const hits = raycaster.intersectObjects(scene.children, true);
+  for(const h of hits){
+    let o = h.object, i = null;
+    while(o && !i){ i = o.userData && o.userData.info; o = o.parent; }
+    if(i){
+      document.getElementById('infoT').textContent = i[0];
+      document.getElementById('infoP').textContent = i[1];
+      document.getElementById('info').style.display='block';
+      return;
+    }
+  }
+}
+
+/* ---------- DXF (pianta) ---------- */
+function dxf(){
+  let s = '0\nSECTION\n2\nENTITIES\n';
+  const line=(x1,y1,x2,y2,l)=>{ s+=`0\nLINE\n8\n${l}\n10\n${x1.toFixed(2)}\n20\n${y1.toFixed(2)}\n30\n0\n11\n${x2.toFixed(2)}\n21\n${y2.toFixed(2)}\n31\n0\n`; };
+  const text=(x,y,t,h)=>{ s+=`0\nTEXT\n8\nQUOTE\n10\n${x.toFixed(2)}\n20\n${y.toFixed(2)}\n30\n0\n40\n${h||8}\n1\n${t}\n`; };
+  const rect=(x,y,w,d,l)=>{ line(x,y,x+w,y,l); line(x+w,y,x+w,y-d,l); line(x+w,y-d,x,y-d,l); line(x,y-d,x,y,l); };
+  line(-40,0,390,0,'MURI'); line(0,0,0,-430,'MURI');
+  RUN_B.forEach(m=>{ rect(m.x0,0,m.w,60,'BASI'); text(m.x0+4,-18,String(m.w),9); });
+  RUN_A.forEach(m=>{ rect(0,-m.z0,60,m.w,'BASI'); text(8,-m.z0-14,String(m.w),9); });
+  /* termocucina: rettangolo ruotato di 45° attorno al suo centro */
+  const c=Math.cos(STOVE.rot), sn=Math.sin(STOVE.rot), hw=STOVE.w/2, hd=STOVE.d/2;
+  const pts=[[ hd,-hw],[ hd, hw],[-hd, hw],[-hd,-hw]].map(p=>{
+    const X = STOVE.cx + p[0]*c + p[1]*sn, Z = STOVE.cz - p[0]*sn + p[1]*c;
+    return [X, -Z];
+  });
+  for(let i=0;i<4;i++) line(pts[i][0],pts[i][1],pts[(i+1)%4][0],pts[(i+1)%4][1],'TERMOCUCINA');
+  text(STOVE.cx-30,-STOVE.cz,'TERMOCUCINA 80 (ruotata 45)',8);
+  IMPIANTI.forEach(p=>{
+    if(p.wall==='B'){ line(p.p,0,p.p,14,'IMPIANTI'); text(p.p+2,16,p.t,6); }
+    else { line(0,-p.p,14,-p.p,'IMPIANTI'); text(16,-p.p,p.t,6); }
+  });
+  DL.forEach(p=>{ line(p[0]-6,-p[1],p[0]+6,-p[1],'LUCI'); line(p[0],-p[1]-6,p[0],-p[1]+6,'LUCI'); text(p[0]+8,-p[1],'faretto',6); });
+  text(120,26,'CUCINA - PARETE COTTURA 352',12);
+  text(75,-420,'PARETE LAVELLO 395',12);
+  s += '0\nENDSEC\n0\nEOF\n';
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(new Blob([s],{type:'application/dxf'}));
+  a.download = 'cucina-pianta.dxf'; a.click();
+}
+
+/* ---------- loop ---------- */
+function animate(){
+  requestAnimationFrame(animate);
+  camera.position.lerp(camT, .12);
+  tgt.lerp(tgtT, .12);
+  camera.lookAt(tgt);
+  doors.forEach(d=>{
+    if(d.axis==='z'){ if(d.m.userData.z0===undefined) d.m.userData.z0 = d.m.position.z;
+      d.m.position.z += (d.m.userData.z0 + (aperte?d.open:0) - d.m.position.z)*.14; }
+    else { if(d.m.userData.x0===undefined) d.m.userData.x0 = d.m.position.x;
+      d.m.position.x += (d.m.userData.x0 + (aperte?d.open:0) - d.m.position.x)*.14; }
+  });
+  winLeaves.forEach(w=>{
+    const t = winOpen ? w.dir * 1.15 : 0;
+    w.g.rotation.y += (t - w.g.rotation.y)*.12;
+  });
+  renderer.render(scene, camera);
+}
+
+function start(){
+  if(!window.THREE){ document.getElementById('loader').textContent =
+    'Non riesco a caricare il motore 3D: controlla la connessione e riapri la pagina.'; return; }
+  try{ init(); }
+  catch(err){ console.error(err);
+    document.getElementById('loader').textContent = 'Errore nella preparazione del modello: ' + err.message; }
+}
+if(document.readyState === 'complete') setTimeout(start,40);
+else addEventListener('load', ()=> setTimeout(start,40));
+</script>
+</body>
+</html>
