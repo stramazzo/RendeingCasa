@@ -398,18 +398,18 @@ function buildMoon(o){
    finestra formano un unico mobile con cassetto; oltre, la mensola e' sagomata da 130 cm
    sul lato muro a 100 cm sul lato interno con raccordo curvo, senza spigoli vivi ---------- */
 function buildShelves(o){
-  const D=o.D,x0=o.x0,dep=0.40,th=0.03,col=o.col||0,cx=o.cx,LW=1.15,LF=0.90,CAB=0.90,FR=0.15;
+  const D=o.D,x0=o.x0,dep=0.40,th=0.03,col=o.col||0,cx=o.cx,LW=1.15,LF=0.85,CAB=0.90,FR=0.15;
   const gr=new THREE.Group();R.add(gr);
-  gr.userData.info={t:'Mobile con cassetto e mensola sagomata',s:'Due piani in legno profondi 40 cm, piano superiore a 70 cm da terra: nei primi 90 cm dalla parete della finestra formano un unico mobile con cassetto; oltre, la mensola \u00e8 sagomata da 115 cm sul lato muro a 90 cm sul lato interno, accorciata di 5 cm sul lato porta, con angolo frontale arrotondato entro 50 cm dal centro del lavabo. Il primo piano \u00e8 sagomato attorno alla colonna in cartongesso'};
+  gr.userData.info={t:'Mobile con cassetto e mensola sagomata',s:'Due piani in legno profondi 40 cm, piano superiore a 70 cm da terra: nei primi 90 cm dalla parete della finestra formano un unico mobile con cassetto; oltre, la mensola \u00e8 sagomata da 115 cm sul lato muro a 85 cm sul lato interno (parte frontale accorciata di 5 cm), con angolo frontale arrotondato entro 50 cm dal centro del lavabo. Il primo piano \u00e8 sagomato attorno alla colonna in cartongesso'};
   /* profilo in pianta: u lungo la parete a partire dalla finestra, v profondita' dal muro.
      angolo frontale lato porta arrotondato (raggio FR + raccordo curvo) in modo che resti
-     entro 50 cm dal centro del lavabo (cx, D-0.165 circa) */
+     entro 50 cm dal centro del lavabo preso sulla parete (cx, D), non nel bacino */
   const prof=()=>{
     const p=new THREE.Shape();
     p.moveTo(col,0);
     p.lineTo(LW-FR,0);
     p.quadraticCurveTo(LW,0,LW,FR);
-    p.bezierCurveTo(LW,FR+0.18,LW-0.05,dep,LF,dep);
+    p.bezierCurveTo(LW,FR+0.08,LW-0.08,dep,LF,dep);
     p.lineTo(0,dep);
     p.lineTo(0,col);
     p.lineTo(col,col);
