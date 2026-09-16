@@ -483,6 +483,38 @@ function buildColumn(x0,z0,label){
   return {group:g,rect:[x0,x0+0.10,z0,z0+0.10]};
 }
 
+/* ---------- mobiletto bianco a due ante scorrevoli, incassato in una resede ----------
+   Il vano sta nello spessore del muro: o.dep e' la profondita' dell'incavo, o.z0/o.z1 la
+   larghezza lungo la parete, o.y0/o.y1 le quote. Le due ante corrono su due binari
+   affiancati: aprendo, quella davanti si nasconde dietro l'altra e libera meta' vano. */
+function buildNicheCabinet(o){
+  const dep=o.dep,z0=o.z0,z1=o.z1,y0=o.y0,y1=o.y1,T=0.018;
+  const g=new THREE.Group();o.parent.add(g);
+  const info={t:'Mobiletto nella resede',s:'Bianco laccato, incassato nella resede sotto la finestra: da 4 cm da terra fino al davanzale. Due ante scorrevoli su binari affiancati, una si nasconde dietro l\u2019altra e lascia libera met\u00e0 del vano.'};
+  g.userData.info=info;
+  /* struttura: fondo, cielo, schiena, due fianchi e un ripiano a meta' altezza */
+  bx(-dep,0,y0,y0+T,z0,z1,M.lacquer,g);
+  bx(-dep,0,y1-T,y1,z0,z1,M.lacquer,g);
+  bx(-dep,-dep+T,y0+T,y1-T,z0+T,z1-T,M.lacquer,g);   /* schiena fra i due fianchi */
+  bx(-dep,0,y0+T,y1-T,z0,z0+T,M.lacquer,g);
+  bx(-dep,0,y0+T,y1-T,z1-T,z1,M.lacquer,g);
+  bx(-dep+T,-0.06,(y0+y1)/2-T/2,(y0+y1)/2+T/2,z0+T,z1-T,M.lacquer,g);
+  /* ante: la posteriore sul binario interno, l'anteriore su quello quasi a filo muro.
+     Sono larghe meta' vano piu' la sovrapposizione, cosi' chiudono senza fessure. */
+  const io0=z0+T,io1=z1-T,half=(io1-io0)/2,lap=0.011,wA=half+lap/2,run=half-lap/2;
+  const leaf=(xa,xb,za,gripLeft)=>{
+    const lg=new THREE.Group();g.add(lg);
+    lg.userData.info=info;lg.userData.winIdx=o.winIdx;
+    bx(xa,xb,y0+T+0.004,y1-T-0.004,za,za+wA,M.lacquer,lg);
+    const gz=gripLeft?za+0.035:za+wA-0.05;
+    bx(xb,xb+0.004,y0+0.24,y1-0.24,gz,gz+0.015,M.alu,lg);
+    return lg;
+  };
+  leaf(-0.052,-0.034,io0,true);
+  const front=leaf(-0.026,-0.008,io0+run,false);
+  return {group:g,anim:e=>{front.position.z=-run*e;}};
+}
+
 /* ---------- tubular towel warmer, all pipes exposed ---------- */
 function towelRail(o){
   const g=new THREE.Group();(o.parent||R).add(g);
@@ -857,14 +889,15 @@ function buildTerra(cfg){
   const SH={t:'Rivestimento doccia, decoro su fondo cemento chiaro',s:'60 \u00d7 120 cm in orizzontale, fino a 240 cm, come nel campione fotografato (IMG_5508). Texture ricostruita, indicativa'};
   const mS=std({map:damaskTex(),roughness:0.55,envMapIntensity:0.55}),mW=getGC01();
   const XS=SHX+0.01,ZS=0.99;
-  /* niente rivestimento GC01 su tutto il tratto z:0-0.625 (resede + finestra): resta solo
-     dalla finestra in poi (z:0.625-D) */
-  wallPlane(ctx,'A',0,XS,0,TW,mW,GC01);wallPlane(ctx,'B',0,W,0,TW,mW,GC01);wallPlane(ctx,'L',0.625,D,0,TW,mW,GC01);
+  /* niente rivestimento GC01 sul tratto z:0-0.625 (resede + finestra); nella config. 3 la
+     parete della finestra resta senza rivestimento per intero */
+  wallPlane(ctx,'A',0,XS,0,TW,mW,GC01);wallPlane(ctx,'B',0,W,0,TW,mW,GC01);
+  if(cfg!==3)wallPlane(ctx,'L',0.625,D,0,TW,mW,GC01);
   wallPlane(ctx,'R',ZS,1.0,0,TW,mW,GC01);wallPlane(ctx,'R',1.86+dB,D,0,TW,mW,GC01);
   wallPlane(ctx,'A',XS,W,0,TS,mS,SH);wallPlane(ctx,'R',0,ZS,0,TS,mS,SH);
   tp(0,XS-0.011,TW,TW+0.01,0,0.011,AG);tp(XS-0.011,XS,TW,TS+0.01,0,0.011,AG);tp(XS-0.011,W,TS,TS+0.01,0,0.011,AG);
   tp(0,W,TW,TW+0.01,D-0.011,D,BG);
-  tp(0,0.011,TW,TW+0.01,0.625,D,LG);
+  if(cfg!==3)tp(0,0.011,TW,TW+0.01,0.625,D,LG);
   tp(W-0.011,W,TS,TS+0.01,0,ZS+0.011,RG);tp(W-0.011,W,TW,TS,ZS,ZS+0.011,RG);tp(W-0.011,W,TW,TW+0.01,1.93+dB,D,RG);
 
   /* window on wall L, lowered by 20 cm */
@@ -949,6 +982,10 @@ function buildTerra(cfg){
   else{const sh=buildShelves({x0:0,cx:0.70,top:0.70,col:0.10,D:D,mat:wood});furn=sh.polys;dxfFurn=furn.map(p=>({poly:p,y0:sh.y0,y1:sh.y1,label:'Mensole e lavabo'}));MX0=0.30;MW=0.80;}
   furn=furn.concat([rectPoly(col.rect)]);
   dxfFurn=dxfFurn.concat([{poly:rectPoly(col.rect),y0:0,y1:H,label:'Colonna impianti'}]);
+  /* config. 3: mobiletto a due ante scorrevoli dentro la resede, da 4 cm da terra fino
+     a filo sotto il davanzale (che parte da WY0-0.005) */
+  const CABY0=0.04,CABY1=WY0-0.01;
+  const nicheCab = cfg===3 ? buildNicheCabinet({parent:LG,dep:NICHE,z0:0,z1:0.625,y0:CABY0,y1:CABY1,winIdx:2}) : null;
   const MC=MX0+MW/2;
   const mr=mirrorRig([MC,1.5,D-0.90]);
   const mg=new THREE.Group();BG.add(mg);
@@ -1000,7 +1037,7 @@ function buildTerra(cfg){
     wallItems:[
       {wall:'B',layer:'ARREDO',label:'Specchio',u0:W-mirX1,u1:W-mirX0,v0:mirY0,v1:mirY1},
       {wall:'B',layer:'ARREDO',label:'Scaldasalviette',u0:W-2.05,u1:W-1.53,v0:0.56,v1:1.98}
-    ]
+    ].concat(nicheCab?[{wall:'L',layer:'ARREDO',label:'Mobiletto resede',u0:D-0.625,u1:D,v0:CABY0,v1:CABY1}]:[])
   };
   return {
     key:'terra',cfg:cfg,name:'Bagno piano terra',title:'Bagno piano terra, 232 \u00d7 192 cm',W,D,R,walls,spots,vl,hemi:L.hemi,sun:L.sun,mirror,mirCam:mr.cam,envCam,envRT,dxf,
@@ -1008,8 +1045,9 @@ function buildTerra(cfg){
     dayI:0.27,nightI:0.42,
     showerAnim:e=>{doorF.position.x=0.32*e;doorS.position.z=-0.40*e;},
     doorAnim:e=>{leaf.position.z=-0.79*e;},
-    winNames:['finestra'],
-    winAnim:[e=>{wLeaf.rotation.y=Math.PI/2*e;}],
+    winNames:nicheCab?['finestra','mobiletto']:['finestra'],
+    winAnim:nicheCab?[e=>{wLeaf.rotation.y=Math.PI/2*e;},nicheCab.anim]
+                    :[e=>{wLeaf.rotation.y=Math.PI/2*e;}],
     views:{
       ingresso:{p:[2.22,1.60,1.64],t:[0.70,0.95,0.55],f:68,interior:true},
       lavabo:{p:[1.15,1.55,0.22],t:[0.85,1.05,1.95],f:66,interior:true},
@@ -1043,11 +1081,10 @@ function buildPrimo(cfg){
   const SH={t:'Rivestimento doccia, effetto metallo corten e blu',s:'60 \u00d7 120 cm in orizzontale, fino a 240 cm, come nel campione fotografato (IMG_5509). Texture ricostruita, indicativa'};
   const mS=std({map:cortenTex(),roughness:0.48,metalness:0.05,envMapIntensity:0.7}),mW=getGC01();
   wallPlane(ctx,'A',0,SX,0,TS,mS,SH);wallPlane(ctx,'L',0,SZ,0,TS,mS,SH);
-  wallPlane(ctx,'A',SX,W,0,TW,mW,GC01);wallPlane(ctx,'L',SZ,DZ0-0.07,0,TW,mW,GC01);wallPlane(ctx,'R',0,D,0,TW,mW,GC01,[[WZ0,WZ1,WY0]]);wallPlane(ctx,'B',0,W,0,TW,mW,GC01);
+  /* la parete della finestra (R) resta senza rivestimento per intero */
+  wallPlane(ctx,'A',SX,W,0,TW,mW,GC01);wallPlane(ctx,'L',SZ,DZ0-0.07,0,TW,mW,GC01);wallPlane(ctx,'B',0,W,0,TW,mW,GC01);
   tp(SX+0.011,W,TW,TW+0.01,0,0.011,AG);tp(SX,SX+0.011,TW,TS+0.01,0,0.011,AG);tp(0,SX+0.011,TS,TS+0.01,0,0.011,AG);
   tp(0,0.011,TS,TS+0.01,0,SZ+0.011,LG);tp(0,0.011,TW,TS,SZ,SZ+0.011,LG);tp(0,0.011,TW,TW+0.01,SZ+0.011,DZ0-0.07,LG);
-  tp(W-0.011,W,TW,TW+0.01,0,WZ0-0.011,RG);tp(W-0.011,W,TW,TW+0.01,WZ1+0.011,D,RG);
-  tp(W-0.011,W,WY0+0.015,TW+0.01,WZ0-0.011,WZ0,RG);tp(W-0.011,W,WY0+0.015,TW+0.01,WZ1,WZ1+0.011,RG);
   tp(0,W,TW,TW+0.01,D-0.011,D,BG);
 
   /* window on wall R, lowered by 20 cm */
