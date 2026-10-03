@@ -62,7 +62,7 @@
     <ul>
       <li><b>Parete cottura</b> 352 cm: base 95 + base 120 (piano cottura in asse a 155) + colonna forno/micro 60 (asse 245) + colonna frigo 60 (asse 305) + fianco 17</li>
       <li><b>Parete lavello</b> 395 cm: angolo 95 + lavastoviglie 60 + lavello 90 a incasso (asse 200) + base 50 + <b>termocucina a legna</b> da 80, spalle al muro e fronte a filo dei mobili, canna fumaria a destra</li>
-      <li><b>Finiture</b>: pavimento in gres Mirage Glocal GC07 Sugar, pareti bianche, ante e piano ripresi dal render</li>
+      <li><b>Finiture</b>: pavimento in gres Mirage Glocal GC07 SP Sugar, pareti bianche, ante e piano ripresi dal render</li>
       <li><b>Impianti e luci</b>: cappa H.200 · micro H.160 · forno H.90 · frigo H.160 · prese H.106÷110 · uscite LED · faretti a soffitto</li>
       <li>Le <b>tre configurazioni</b> per ora sono identiche: sono segnaposto da differenziare quando decidiamo le varianti</li>
     </ul>
@@ -175,7 +175,7 @@ function joints(g,w,h,cols,rows,col,gw){
   for(let i=0;i<=cols;i++) g.fillRect(i*w/cols-gw/2,0,gw,h);
   for(let j=0;j<=rows;j++) g.fillRect(0,j*h/rows-gw/2,w,gw);
 }
-/* gres effetto cemento a pavimento (Mirage Glocal GC07 Sugar) */
+/* gres effetto cemento a pavimento (Mirage Glocal GC07 SP Sugar) */
 function cementTex(o){
   const pxm=853.333, w=Math.round(o.mw*pxm), h=Math.round(o.mh*pxm), c=mkC(w,h), g=c.getContext('2d');
   const cols=Math.round(o.mw/1.2), rows=Math.round(o.mh/0.6), tw=w/cols, th=h/rows; seed=o.seed;
@@ -193,7 +193,7 @@ function cementTex(o){
   }
   g.lineWidth=1; const ns=Math.round(14000*w*h/(2048*2048));
   for(let k=0;k<ns;k++){
-    const x=rnd()*w, y=rnd()*h, len=8+rnd()*70, an=(rnd()-0.5)*0.5;
+    const x=rnd()*w, y=rnd()*h, len=8+rnd()*70, an=(rnd()-0.5)*(o.brush?0.12:0.5);
     g.strokeStyle = rnd()>0.5 ? 'rgba('+o.lt+',0.07)' : 'rgba('+o.dk+',0.055)';
     g.beginPath(); g.moveTo(x,y); g.lineTo(x+Math.cos(an)*len,y+Math.sin(an)*len); g.stroke();
   }
@@ -257,9 +257,9 @@ function buildMaterials(){
     dl:      std({color:0xffffff, emissive:0xfff4e6, emissiveIntensity:1.05}),
     bianco:  std({color:0xf3f3f0, roughness:0.32, metalness:0.1})
   };
-  M.pav = std({ map: cementTex({mw:2.4,mh:2.4,base:[200,200,198],lt:'250,250,250',dk:'104,104,106',
-                                grout:'rgb(163,164,163)',tv:9,blot:0.05,seed:23}),
-                roughness:0.7, metalness:0, envMapIntensity:0.45 });
+  M.pav = std({ map: cementTex({mw:2.4,mh:2.4,base:[234,231,224],lt:'255,254,251',dk:'160,155,146',
+                                grout:'rgb(204,200,192)',tv:6,blot:0.04,brush:true,seed:23}),
+                roughness:0.64, metalness:0, envMapIntensity:0.45 });
   M.pav.map.repeat.set(ROOM.w/240, ROOM.d/240);
 }
 
@@ -349,7 +349,7 @@ function buildRoom(){
   floor.rotation.x = -Math.PI/2;
   floor.position.set(ROOM.w/2 - 40, 0, ROOM.d/2 - 40);
   floor.receiveShadow = true;
-  floor.userData.info = ['Mirage Glocal GC07 Sugar, spazzolato','Gres porcellanato effetto cemento 60 × 120 cm, posato in tutta la stanza.'];
+  floor.userData.info = ['Mirage Glocal GC07 SP Sugar, spazzolato','Gres porcellanato effetto cemento 60 × 120 cm, posato in tutta la stanza.'];
   g.add(floor);
 
   const wB = new THREE.Mesh(new THREE.PlaneGeometry(ROOM.w, ROOM.h), M.muro);
