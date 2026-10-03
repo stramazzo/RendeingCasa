@@ -83,7 +83,7 @@ body.idle .tag,body.idle #bHome,body.idle .bar,body.idle #info{opacity:0;pointer
           <path d="M0 0 H232 V102 M232 182 V192 H0 V62 M0 14 V0" fill="none" stroke="#4a443d" stroke-width="3.2"/>
           <path d="M-4 14 V62 M4 14 V62" stroke="#8fb0c4" stroke-width="1.6"/>
         </svg>
-        <span><b>Bagno piano terra</b><span class="d">232 × 192 cm al filo finito · vaso e bidet a terra TEN 4.0 · 3 configurazioni: MOON 043 da 100, da 80 o due mensole in legno</span></span>
+        <span><b>Bagno piano terra</b><span class="d">232 × 192 cm al filo finito · sanitari sospesi File 2.0 · 3 configurazioni: MOON 043 da 100, da 80 o due mensole in legno</span></span>
         <span class="go">Apri il bagno</span>
       </button>
       <button class="card" data-room="primo">
@@ -318,7 +318,7 @@ const M={
 const MEMO={};
 function memo(k,f){if(!MEMO[k])MEMO[k]=f();return MEMO[k];}
 let floorMat=null,gc01Mat=null;
-function getFloor(){if(!floorMat)floorMat=std({map:cementTex({mw:2.4,mh:2.4,base:[200,200,198],lt:'250,250,250',dk:'104,104,106',grout:'rgb(163,164,163)',tv:9,blot:0.05,seed:23}),roughness:0.7,metalness:0,envMapIntensity:0.45});return floorMat;}
+function getFloor(){if(!floorMat)floorMat=std({map:cementTex({mw:2.4,mh:2.4,base:[234,231,224],lt:'255,254,251',dk:'160,155,146',grout:'rgb(204,200,192)',tv:6,blot:0.04,brush:true,seed:23}),roughness:0.64,metalness:0,envMapIntensity:0.45});return floorMat;}
 function getGC01(){if(!gc01Mat)gc01Mat=std({map:cementTex({mw:2.4,mh:1.2,base:[224,221,214],lt:'253,252,249',dk:'150,146,138',grout:'rgb(196,193,186)',tv:6,blot:0.04,brush:true,seed:31}),roughness:0.62,metalness:0,envMapIntensity:0.5});return gc01Mat;}
 function woodMat(rgb){return memo('wood'+rgb.join('_'),()=>{const t=grooveTex(rgb);return std({map:t.map,bumpMap:t.bump,bumpScale:0.0006,roughness:0.62,envMapIntensity:0.5});});}
 
@@ -846,10 +846,34 @@ function mirrorRig(pos){
   return {rt,cam:camc};
 }
 
-const TILE={t:'Mirage Glocal GC07 Sugar, spazzolato',s:'Gres porcellanato effetto cemento 60 \u00d7 120 cm, a pavimento'};
+const TILE={t:'Mirage Glocal GC07 SP Sugar, spazzolato',s:'Gres porcellanato effetto cemento 60 \u00d7 120 cm, a pavimento'};
 const PAINT={t:'Pareti',s:'Pittura bianca sopra il rivestimento'};
 const GC01={t:'Mirage Glocal GC01 Clear, spazzolato',s:'60 \u00d7 120 cm posato in orizzontale, fuori dalla doccia fino a 120 cm da terra'};
 const TW=1.20,TS=2.40;
+
+/* sanitari sospesi File 2.0 (The.Artceram), comuni ai due bagni: vaso FLV004 + bidet FLB001 */
+const f2Body=()=>[...fillet([0.145,0,0.33,2.8,5],0.07,0.022,false,4),ring(0.12,0.162,0,0.42,2.8),ring(0.17,0.174,0,0.48,2.8),ring(0.23,0.182,0,0.512,2.8),ring(0.30,0.185,0,0.52,2.8)];
+function file2WC(x,side){
+  const wc=new THREE.Group();wc.position.set(x,0,0.008);R.add(wc);
+  wc.userData.info={t:'Vaso sospeso File 2.0 FLV004, The.Artceram',s:'Rimless, 37 \u00d7 52 cm, '+side+', sedile slim a chiusura rallentata, bordo a circa 40 cm da terra'};
+  add(new THREE.Mesh(loft([...f2Body(),...fillet([0.185,0,0.52,2.8,5],0.40,0.018,true,6)],[0,0.07,0.16],[0,0.40,0.26]),M.ceramic),wc);
+  add(new THREE.Mesh(slab([0.179,0.078,0.513,2.8,4],0.401,0.013,0.005),M.seat),wc);
+  add(new THREE.Mesh(slab([0.177,0.081,0.511,2.8,4],0.4155,0.017,0.007),M.seat),wc);
+  cy(0.008,0.034,-0.07,0.411,0.055,'x',M.chrome,wc);cy(0.008,0.034,0.07,0.411,0.055,'x',M.chrome,wc);
+  return wc;
+}
+function file2Bidet(x,side){
+  const bd=new THREE.Group();bd.position.set(x,0,0.008);R.add(bd);
+  bd.userData.info={t:'Bidet sospeso File 2.0 FLB001, The.Artceram',s:'Monoforo, 37 \u00d7 52 cm, '+side+', bordo a circa 40 cm da terra'};
+  const op=(y,a,zb,zf,n)=>ring(y,a,zb,zf,n,n);
+  const rs=[...f2Body(),...fillet([0.185,0,0.52,2.8,5],0.40,0.016,true,5),
+    op(0.40,0.145,0.125,0.478,2.6),op(0.3985,0.122,0.146,0.463,2.5),op(0.391,0.116,0.152,0.457,2.5),
+    op(0.36,0.106,0.165,0.446,2.4),op(0.318,0.087,0.19,0.416,2.3),op(0.279,0.054,0.235,0.372,2.1),op(0.26,0.022,0.28,0.33,2)];
+  add(new THREE.Mesh(loft(rs,[0,0.07,0.16],[0,0.256,0.305]),M.ceramic),bd);
+  cy(0.016,0.003,0,0.2575,0.305,'y',M.chrome,bd,32);
+  gintonic(bd,0,0.40,0.07,'bid');
+  return bd;
+}
 
 /* =================== GROUND FLOOR: 235 x 195 =================== */
 function buildTerra(cfg){
@@ -928,30 +952,11 @@ function buildTerra(cfg){
   bx(W+0.026,W+0.03,0.95,1.13,1.775,1.81,M.alu,leaf);bx(W+0.07,W+0.074,0.95,1.13,1.775,1.81,M.alu,leaf);
   bx(W+0.044,W+0.056,0.97,1.11,1.848,1.852,M.alu,leaf);
 
-  /* WC TEV008 + bidet TEB005, floor standing back to wall */
-  const wc=new THREE.Group();wc.position.set(0.46,0,0.008);R.add(wc);
-  wc.userData.info={t:'Vaso TEN 4.0 TEV008, The.Artceram',s:'A terra filo muro, rimless, 36 \u00d7 52 cm, h 41 cm, con sedile slim a chiusura rallentata'};
-  {
-    const rs=[ring(0.001,0.152,0,0.43),ring(0.07,0.159,0,0.458),ring(0.15,0.169,0,0.492),ring(0.24,0.177,0,0.513),ring(0.32,0.18,0,0.52),...fillet([0.18,0,0.52,2.5,5],0.41,0.02,true,6)];
-    add(new THREE.Mesh(loft(rs,[0,0.001,0.2],[0,0.41,0.26]),M.ceramic),wc);
-    add(new THREE.Mesh(slab([0.174,0.075,0.513,2.5,4],0.411,0.013,0.005),M.seat),wc);
-    add(new THREE.Mesh(slab([0.172,0.078,0.511,2.5,4],0.4255,0.017,0.007),M.seat),wc);
-    cy(0.008,0.034,-0.07,0.421,0.052,'x',M.chrome,wc);cy(0.008,0.034,0.07,0.421,0.052,'x',M.chrome,wc);
-  }
-  const fp=new THREE.Group();AG.add(fp);fp.userData.info={t:'Placca di scarico',s:'Per la cassetta a incasso del vaso filo muro (indicativa)'};
+  /* File 2.0 wall hung WC FLV004 + bidet FLB001 */
+  file2WC(0.46,'lato finestra');
+  const fp=new THREE.Group();AG.add(fp);fp.userData.info={t:'Placca di scarico',s:'Per la cassetta a incasso del vaso sospeso (indicativa)'};
   bx(0.335,0.585,0.98,1.14,0.006,0.014,M.white,fp);bx(0.35,0.455,0.995,1.125,0.014,0.017,M.alu,fp);bx(0.465,0.57,0.995,1.125,0.014,0.017,M.alu,fp);
-  const bd=new THREE.Group();bd.position.set(1.12,0,0.008);R.add(bd);
-  bd.userData.info={t:'Bidet TEN 4.0 TEB005, The.Artceram',s:'A terra filo muro, monoforo, 36 \u00d7 52 cm, h circa 41 cm, coordinato al vaso TEV008'};
-  {
-    const op=(y,a,zb,zf,n)=>ring(y,a,zb,zf,n,n);
-    const rs=[ring(0.001,0.152,0,0.43),ring(0.07,0.159,0,0.458),ring(0.15,0.169,0,0.492),ring(0.24,0.177,0,0.513),ring(0.32,0.18,0,0.52),
-      ...fillet([0.18,0,0.52,2.5,5],0.41,0.018,true,5),
-      op(0.41,0.14,0.125,0.478,2.4),op(0.4085,0.119,0.146,0.463,2.3),op(0.401,0.113,0.152,0.457,2.3),
-      op(0.37,0.104,0.165,0.446,2.3),op(0.328,0.085,0.19,0.416,2.2),op(0.289,0.053,0.235,0.372,2.1),op(0.27,0.022,0.28,0.33,2)];
-    add(new THREE.Mesh(loft(rs,[0,0.001,0.2],[0,0.266,0.305]),M.ceramic),bd);
-    cy(0.016,0.003,0,0.2675,0.305,'y',M.chrome,bd,32);
-    gintonic(bd,0,0.41,0.07,'bid');
-  }
+  file2Bidet(1.12,'lato doccia');
   const ph=new THREE.Group();AG.add(ph);ph.userData.info={t:'Portarotolo',s:'Sulla parete dei sanitari, a fianco del vaso, a 72 cm da terra'};
   cy(0.008,0.07,0.18,0.72,0.035,'z',M.chrome,ph);cy(0.006,0.13,0.115,0.72,0.07,'x',M.chrome,ph);cy(0.052,0.10,0.11,0.72,0.07,'x',M.paper,ph);
 
@@ -1031,8 +1036,8 @@ function buildTerra(cfg){
     ],
     dxfFurn,shower:rectPoly([SHX,W,0,1.00]),
     sanitary:[
-      {wall:'A',label:'WC',cx:0.46,cz:0.008,w:0.36,d:0.52,y0:0,y1:0.41},
-      {wall:'A',label:'Bidet',cx:1.12,cz:0.008,w:0.36,d:0.52,y0:0,y1:0.41}
+      {wall:'A',label:'WC',cx:0.46,cz:0.008,w:0.37,d:0.52,y0:0.07,y1:0.40},
+      {wall:'A',label:'Bidet',cx:1.12,cz:0.008,w:0.37,d:0.52,y0:0.07,y1:0.40}
     ],
     wallItems:[
       {wall:'B',layer:'ARREDO',label:'Specchio',u0:W-mirX1,u1:W-mirX0,v0:mirY0,v1:mirY1},
@@ -1129,26 +1134,10 @@ function buildPrimo(cfg){
   }
 
   /* File 2.0 wall hung WC FLV004 + bidet FLB001 */
-  const f2Body=()=>[...fillet([0.145,0,0.33,2.8,5],0.07,0.022,false,4),ring(0.12,0.162,0,0.42,2.8),ring(0.17,0.174,0,0.48,2.8),ring(0.23,0.182,0,0.512,2.8),ring(0.30,0.185,0,0.52,2.8)];
-  const wc=new THREE.Group();wc.position.set(2.20,0,0.008);R.add(wc);
-  wc.userData.info={t:'Vaso sospeso File 2.0 FLV004, The.Artceram',s:'Rimless, 37 \u00d7 52 cm, lato finestra, sedile slim a chiusura rallentata, bordo a circa 40 cm da terra'};
-  add(new THREE.Mesh(loft([...f2Body(),...fillet([0.185,0,0.52,2.8,5],0.40,0.018,true,6)],[0,0.07,0.16],[0,0.40,0.26]),M.ceramic),wc);
-  add(new THREE.Mesh(slab([0.179,0.078,0.513,2.8,4],0.401,0.013,0.005),M.seat),wc);
-  add(new THREE.Mesh(slab([0.177,0.081,0.511,2.8,4],0.4155,0.017,0.007),M.seat),wc);
-  cy(0.008,0.034,-0.07,0.411,0.055,'x',M.chrome,wc);cy(0.008,0.034,0.07,0.411,0.055,'x',M.chrome,wc);
+  file2WC(2.20,'lato finestra');
   const fp=new THREE.Group();AG.add(fp);fp.userData.info={t:'Placca di scarico',s:'Per la cassetta a incasso del vaso sospeso (indicativa)'};
   bx(2.075,2.325,0.98,1.14,0.006,0.014,M.white,fp);bx(2.09,2.195,0.995,1.125,0.014,0.017,M.alu,fp);bx(2.205,2.31,0.995,1.125,0.014,0.017,M.alu,fp);
-  const bd=new THREE.Group();bd.position.set(1.54,0,0.008);R.add(bd);
-  bd.userData.info={t:'Bidet sospeso File 2.0 FLB001, The.Artceram',s:'Monoforo, 37 \u00d7 52 cm, lato doccia, bordo a circa 40 cm da terra'};
-  {
-    const op=(y,a,zb,zf,n)=>ring(y,a,zb,zf,n,n);
-    const rs=[...f2Body(),...fillet([0.185,0,0.52,2.8,5],0.40,0.016,true,5),
-      op(0.40,0.145,0.125,0.478,2.6),op(0.3985,0.122,0.146,0.463,2.5),op(0.391,0.116,0.152,0.457,2.5),
-      op(0.36,0.106,0.165,0.446,2.4),op(0.318,0.087,0.19,0.416,2.3),op(0.279,0.054,0.235,0.372,2.1),op(0.26,0.022,0.28,0.33,2)];
-    add(new THREE.Mesh(loft(rs,[0,0.07,0.16],[0,0.256,0.305]),M.ceramic),bd);
-    cy(0.016,0.003,0,0.2575,0.305,'y',M.chrome,bd,32);
-    gintonic(bd,0,0.40,0.07,'bid');
-  }
+  file2Bidet(1.54,'lato doccia');
 
   /* shower 110 x 75: fixed side, fixed front panel + hinged door opening outwards */
   const shw=new THREE.Group();R.add(shw);
@@ -1222,8 +1211,8 @@ function buildPrimo(cfg){
     ],
     dxfFurn,shower:rectPoly([0,SX,0,SZ]),
     sanitary:[
-      {wall:'A',label:'WC',cx:2.20,cz:0.008,w:0.37,d:0.52,y0:0,y1:0.40},
-      {wall:'A',label:'Bidet',cx:1.54,cz:0.008,w:0.37,d:0.52,y0:0,y1:0.40}
+      {wall:'A',label:'WC',cx:2.20,cz:0.008,w:0.37,d:0.52,y0:0.07,y1:0.40},
+      {wall:'A',label:'Bidet',cx:1.54,cz:0.008,w:0.37,d:0.52,y0:0.07,y1:0.40}
     ],
     wallItems:[
       {wall:'B',layer:'ARREDO',label:'Specchio',u0:W-(VX+VL),u1:W-VX,v0:1.20,v1:2.07},
