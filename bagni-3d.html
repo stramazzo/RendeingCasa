@@ -53,7 +53,6 @@ body.idle .tag,body.idle #bHome,body.idle .bar,body.idle #info{opacity:0;pointer
   <div class="row" id="cfgs">
     <button data-cfg="1" class="on">Config. 1</button>
     <button data-cfg="2">Config. 2</button>
-    <button data-cfg="3">Config. 3</button>
     <button id="bDxf">Scarica DXF</button>
     <button id="bPlanQuota">Pianta con quota</button>
   </div>
@@ -83,7 +82,7 @@ body.idle .tag,body.idle #bHome,body.idle .bar,body.idle #info{opacity:0;pointer
           <path d="M0 0 H232 V102 M232 182 V192 H0 V62 M0 14 V0" fill="none" stroke="#4a443d" stroke-width="3.2"/>
           <path d="M-4 14 V62 M4 14 V62" stroke="#8fb0c4" stroke-width="1.6"/>
         </svg>
-        <span><b>Bagno piano terra</b><span class="d">232 × 192 cm al filo finito · sanitari sospesi File 2.0 · 3 configurazioni: MOON 043 da 100, da 80 o due mensole in legno</span></span>
+        <span><b>Bagno piano terra</b><span class="d">232 × 192 cm al filo finito · sanitari sospesi File 2.0 · 2 configurazioni con mensole in legno: lavabo Geberit Fantasia 66 o The.Artceram WON 55</span></span>
         <span class="go">Apri il bagno</span>
       </button>
       <button class="card" data-room="primo">
@@ -99,7 +98,7 @@ body.idle .tag,body.idle #bHome,body.idle .bar,body.idle #info{opacity:0;pointer
           <path d="M0 84 V0 H267 V38 M267 138 V172 H0 V164" fill="none" stroke="#4a443d" stroke-width="3.2"/>
           <path d="M263 38 V138 M271 38 V138" stroke="#8fb0c4" stroke-width="1.6"/>
         </svg>
-        <span><b>Bagno primo piano</b><span class="d">267 × 172 cm al filo finito · sanitari sospesi File 2.0 · 3 configurazioni: doccia 110×75 o 100×80, mobile da 100 o 80</span></span>
+        <span><b>Bagno primo piano</b><span class="d">267 × 172 cm al filo finito · sanitari sospesi File 2.0 · doccia 100×80, mobile MOON 041 da 80</span></span>
         <span class="go">Apri il bagno</span>
       </button>
     </div>
@@ -265,7 +264,7 @@ function damaskTex(){
   return toTex(c,2.4,1.2);
 }
 
-/* MOON 043 fronts: fine horizontal grooves, as in the catalogue photo */
+/* MOON 041 fronts: fine horizontal grooves, as in the catalogue photo */
 function grooveTex(rgb){
   const w=1024,h=512,c=mkC(w,h),g=c.getContext('2d'),b=mkC(w,h),bg=b.getContext('2d');seed=rgb[0]*7+rgb[2];
   g.fillStyle='rgb('+rgb+')';g.fillRect(0,0,w,h);bg.fillStyle='rgb(150,150,150)';bg.fillRect(0,0,w,h);
@@ -384,11 +383,11 @@ function gintonicWall(parent,x,y,z,rotY){
   return gr;
 }
 
-/* ---------- Mobilduenne MOON 043: 2-drawer base 100 x 44 x 48.6, ceramic console with basin on the left and shelf ---------- */
+/* ---------- Mobilduenne MOON 041: 2-drawer base 100 x 44 x 48.6, ceramic console with basin on the left and shelf ---------- */
 function buildMoon(o){
   const D=o.D,x0=o.x0,yb=o.yb,len=o.len||1.0,hf=len/2,cx=x0+hf,b=o.center?0:-(hf-0.32);
   const van=new THREE.Group();R.add(van);
-  van.userData.info={t:'Mobile MOON 043, Mobilduenne',s:'Base sospesa a 2 cassetti L '+Math.round(len*100)+' \u00d7 P 44 \u00d7 H 48,6, finitura '+o.name+' (colore indicativo), consolle in ceramica bianco lucido con vasca '+(o.center?'centrata':'a sinistra e piano d\u2019appoggio')+''};
+  van.userData.info={t:'Mobile MOON 041, Mobilduenne',s:'Base sospesa a 2 cassetti L '+Math.round(len*100)+' \u00d7 P 44 \u00d7 H 48,6, finitura '+o.name+' (colore indicativo), consolle in ceramica bianco lucido con vasca '+(o.center?'centrata':'a sinistra e piano d\u2019appoggio')+''};
   bx(x0+0.002,x0+len-0.002,yb+0.002,yb+0.484,D-0.422,D-0.003,o.mat,van);
   bx(x0,x0+len,yb,yb+0.240,D-0.44,D-0.422,o.mat,van);bx(x0,x0+len,yb+0.246,yb+0.486,D-0.44,D-0.422,o.mat,van);
   bx(x0+0.004,x0+len-0.004,yb+0.240,yb+0.246,D-0.43,D-0.425,M.gap,van,false);
@@ -404,7 +403,7 @@ function buildMoon(o){
   return {group:van,top:y1,y0:yb,y1:y1,rects:[[x0,x0+len,D-0.44,D]]};
 }
 
-/* ---------- config. 3 piano terra: due piani in legno che nei primi 100 cm dalla parete
+/* ---------- piano terra: due piani in legno che nei primi 100 cm dalla parete
    finestra formano un unico mobile con cassetto; oltre, la mensola e' sagomata da 130 cm
    sul lato muro a 100 cm sul lato interno con raccordo curvo, senza spigoli vivi ---------- */
 function buildShelves(o){
@@ -447,31 +446,46 @@ function buildShelves(o){
     bx(a0+0.020,a1-0.020,b0+0.014,b1-0.014,v1,v1+0.014,o.mat,dw);
     bx(a0+0.22,a1-0.22,b1-0.030,b1-0.010,v0-0.004,v0,M.gap,dw,false);
   }
-  /* lavabo sospeso Geberit Fantasia, 66 x 44: bacino rettangolare a spigoli raccordati,
-     piano forato posteriore per il miscelatore, bordo a 85 cm, fondo a 70 cm sul piano del mobile */
   const bs=new THREE.Group();R.add(bs);
-  const RT=0.85,BB=0.702;
-  bs.userData.info={t:'Lavabo sospeso Geberit Fantasia 66',s:'66 \u00d7 44 cm, ceramica bianca, sospeso a parete con bordo a 85 cm da terra, asse a 70 cm dalla parete della finestra; piano posteriore forato per il miscelatore. Il fondo appoggia sul piano del mobile a 70 cm. Modello indicativo'};
-  {
-    const eo=(yy,a,d,nB)=>ringX(yy,cx,a,D-d,D,14,nB);
-    const ei=(yy,a,d0,d1,nB)=>ringX(yy,cx,a,D-d0,D-d1,5,nB);
+  const RT=0.85,BB=0.702,WON=o.basin==='won',BW=WON?0.55:0.66,BD=WON?0.43:0.44;
+  if(WON){
+    /* lavabo The.Artceram WON WNL003, 55 x 43, sospeso o da appoggio: vasca squadrata a
+       spigoli morbidi con bordo spesso e piano posteriore monoforo; stessa posa del Fantasia
+       (bordo a 85 cm, fondo sul piano del mobile a 70 cm). Sagoma ricostruita, indicativa */
+    bs.userData.info={t:'Lavabo WON WNL003, The.Artceram',s:'55 \u00d7 43 cm, ceramica bianca, sospeso a parete con bordo a 85 cm da terra, asse a 70 cm dalla parete della finestra; monoforo per il miscelatore. Il fondo appoggia sul piano del mobile a 70 cm. Forma indicativa'};
+    const eo=(yy,a,d,n)=>ringX(yy,cx,a,D-d,D,14,n);
+    const ei=(yy,a,d0,d1,n)=>ringX(yy,cx,a,D-d0,D-d1,n,n);
     const rs=[
-      eo(BB,0.189,0.229,4),eo(0.735,0.273,0.326,5),eo(0.790,0.319,0.407,6),
-      eo(0.838,0.330,0.440,6.5),eo(RT,0.330,0.440,6.5),
-      ei(RT,0.283,0.383,0.090,5),ei(0.838,0.279,0.378,0.095,5),
-      ei(0.800,0.269,0.365,0.105,4.5),ei(0.760,0.231,0.330,0.130,4),ei(0.728,0.141,0.264,0.190,3.2)];
-    add(new THREE.Mesh(loft(rs,[cx,BB,D-0.114],[cx,0.728,D-0.216]),M.ceramic),bs);
-    cy(0.018,0.004,cx,0.730,D-0.216,'y',M.chrome,bs,32);
-    bx(cx-0.028,cx+0.028,0.818,0.824,D-0.384,D-0.378,M.gap,bs,false);
+      eo(BB,0.255,0.405,4.5),eo(BB+0.012,0.268,0.422,5),eo(0.74,0.275,0.430,5.5),
+      eo(RT-0.012,0.275,0.430,5.5),eo(RT-0.002,0.271,0.426,5),eo(RT,0.266,0.421,5),
+      ei(RT,0.228,0.385,0.125,7),ei(RT-0.004,0.224,0.381,0.129,7),
+      ei(0.80,0.212,0.372,0.140,6),ei(0.755,0.190,0.355,0.158,5),ei(0.728,0.130,0.320,0.200,4)];
+    add(new THREE.Mesh(loft(rs,[cx,BB,D-0.20],[cx,0.728,D-0.26]),M.ceramic),bs);
+    cy(0.018,0.004,cx,0.730,D-0.26,'y',M.chrome,bs,32);
+  }else{
+    /* lavabo sospeso Geberit Fantasia, 66 x 44: bacino rettangolare a spigoli raccordati,
+       piano forato posteriore per il miscelatore, bordo a 85 cm, fondo a 70 cm sul piano del mobile */
+    bs.userData.info={t:'Lavabo sospeso Geberit Fantasia 66',s:'66 \u00d7 44 cm, ceramica bianca, sospeso a parete con bordo a 85 cm da terra, asse a 70 cm dalla parete della finestra; piano posteriore forato per il miscelatore. Il fondo appoggia sul piano del mobile a 70 cm. Modello indicativo'};
+    {
+      const eo=(yy,a,d,nB)=>ringX(yy,cx,a,D-d,D,14,nB);
+      const ei=(yy,a,d0,d1,nB)=>ringX(yy,cx,a,D-d0,D-d1,5,nB);
+      const rs=[
+        eo(BB,0.189,0.229,4),eo(0.735,0.273,0.326,5),eo(0.790,0.319,0.407,6),
+        eo(0.838,0.330,0.440,6.5),eo(RT,0.330,0.440,6.5),
+        ei(RT,0.283,0.383,0.090,5),ei(0.838,0.279,0.378,0.095,5),
+        ei(0.800,0.269,0.365,0.105,4.5),ei(0.760,0.231,0.330,0.130,4),ei(0.728,0.141,0.264,0.190,3.2)];
+      add(new THREE.Mesh(loft(rs,[cx,BB,D-0.114],[cx,0.728,D-0.216]),M.ceramic),bs);
+      cy(0.018,0.004,cx,0.730,D-0.216,'y',M.chrome,bs,32);
+      bx(cx-0.028,cx+0.028,0.818,0.824,D-0.384,D-0.378,M.gap,bs,false);
+    }
   }
   const mx=gintonic(bs,cx,RT,D-0.055,'lav');mx.rotation.y=Math.PI;
 
   /* sagoma reale in pianta, usata per distanze, ingombri e collisioni */
   const poly=shape.getPoints(72).map(p=>[x0+p.x,D-p.y]);
-  /* bacino 66 x 44 cm "a spigoli raccordati" (come nella descrizione del lavabo Geberit
-     Fantasia poco sopra): la sagoma in pianta usata per le distanze ha quindi gli angoli
-     arrotondati (raggio 10 cm), non spigoli vivi */
-  return {group:gr,polys:[poly,roundedRectPoly([cx-0.33,cx+0.33,D-0.44,D],0.10)],y0:yB,y1:RT};
+  /* bacino (66 x 44 Fantasia o 55 x 43 WON) a spigoli raccordati: la sagoma in pianta
+     usata per le distanze ha quindi gli angoli arrotondati (raggio 10 cm), non spigoli vivi */
+  return {group:gr,polys:[poly,roundedRectPoly([cx-BW/2,cx+BW/2,D-BD,D],0.10)],y0:yB,y1:RT};
 }
 
 /* ---------- plasterboard duct casing 10 x 10, floor to ceiling ---------- */
@@ -913,15 +927,12 @@ function buildTerra(cfg){
   const SH={t:'Rivestimento doccia, decoro su fondo cemento chiaro',s:'60 \u00d7 120 cm in orizzontale, fino a 240 cm, come nel campione fotografato (IMG_5508). Texture ricostruita, indicativa'};
   const mS=std({map:damaskTex(),roughness:0.55,envMapIntensity:0.55}),mW=getGC01();
   const XS=SHX+0.01,ZS=0.99;
-  /* niente rivestimento GC01 sul tratto z:0-0.625 (resede + finestra); nella config. 3 la
-     parete della finestra resta senza rivestimento per intero */
+  /* la parete della finestra resta senza rivestimento GC01 per intero */
   wallPlane(ctx,'A',0,XS,0,TW,mW,GC01);wallPlane(ctx,'B',0,W,0,TW,mW,GC01);
-  if(cfg!==3)wallPlane(ctx,'L',0.625,D,0,TW,mW,GC01);
   wallPlane(ctx,'R',ZS,1.0,0,TW,mW,GC01);wallPlane(ctx,'R',1.86+dB,D,0,TW,mW,GC01);
   wallPlane(ctx,'A',XS,W,0,TS,mS,SH);wallPlane(ctx,'R',0,ZS,0,TS,mS,SH);
   tp(0,XS-0.011,TW,TW+0.01,0,0.011,AG);tp(XS-0.011,XS,TW,TS+0.01,0,0.011,AG);tp(XS-0.011,W,TS,TS+0.01,0,0.011,AG);
   tp(0,W,TW,TW+0.01,D-0.011,D,BG);
-  if(cfg!==3)tp(0,0.011,TW,TW+0.01,0.625,D,LG);
   tp(W-0.011,W,TS,TS+0.01,0,ZS+0.011,RG);tp(W-0.011,W,TW,TS,ZS,ZS+0.011,RG);tp(W-0.011,W,TW,TW+0.01,1.93+dB,D,RG);
 
   /* window on wall L, lowered by 20 cm */
@@ -980,36 +991,25 @@ function buildTerra(cfg){
 
   /* plasterboard duct casing in the corner between the vanity and the window wall */
   const col=buildColumn(0,D-0.10,'Nell\u2019angolo tra il lavabo e la parete della finestra, copre una tubazione');
-  /* config 1: MOON 043 L100. Config 2: MOON 043 L80 a 20 cm dalla parete finestra. Config 3: due mensole in legno */
+  /* due mensole in legno con lavabo sospeso: config. 1 Geberit Fantasia 66, config. 2 The.Artceram WON WNL003 */
   const wood=woodMat([168,136,104]);
-  let furn,dxfFurn,MX0,MW;
-  if(cfg===1){const mo=buildMoon({x0:0.25,yb:0.31,D:D,mat:wood,name:'nocciola'});furn=mo.rects.map(rectPoly);dxfFurn=furn.map(p=>({poly:p,y0:mo.y0,y1:mo.y1,label:'Mobile MOON'}));MX0=0.25;MW=1.00;}
-  else if(cfg===2){const mo=buildMoon({x0:0.16,yb:0.31,len:0.80,center:true,D:D,mat:wood,name:'nocciola'});furn=mo.rects.map(rectPoly);dxfFurn=furn.map(p=>({poly:p,y0:mo.y0,y1:mo.y1,label:'Mobile MOON'}));MX0=0.16;MW=0.80;}
-  else{const sh=buildShelves({x0:0,cx:0.70,top:0.70,col:0.10,D:D,mat:wood});furn=sh.polys;dxfFurn=furn.map(p=>({poly:p,y0:sh.y0,y1:sh.y1,label:'Mensole e lavabo'}));MX0=0.30;MW=0.80;}
+  const sh=buildShelves({x0:0,cx:0.70,top:0.70,col:0.10,D:D,mat:wood,basin:cfg===2?'won':'fantasia'});
+  let furn=sh.polys,dxfFurn=furn.map(p=>({poly:p,y0:sh.y0,y1:sh.y1,label:'Mensole e lavabo'}));
+  const MX0=0.30,MW=0.80;
   furn=furn.concat([rectPoly(col.rect)]);
   dxfFurn=dxfFurn.concat([{poly:rectPoly(col.rect),y0:0,y1:H,label:'Colonna impianti'}]);
-  /* config. 3: mobiletto a due ante scorrevoli dentro la resede, da 4 cm da terra fino
+  /* mobiletto a due ante scorrevoli dentro la resede, da 4 cm da terra fino
      a filo sotto il davanzale (che parte da WY0-0.005) */
   const CABY0=0.04,CABY1=WY0-0.01;
-  const nicheCab = cfg===3 ? buildNicheCabinet({parent:LG,dep:NICHE,z0:0,z1:0.625,y0:CABY0,y1:CABY1,winIdx:2}) : null;
+  const nicheCab = buildNicheCabinet({parent:LG,dep:NICHE,z0:0,z1:0.625,y0:CABY0,y1:CABY1,winIdx:2});
   const MC=MX0+MW/2;
   const mr=mirrorRig([MC,1.5,D-0.90]);
   const mg=new THREE.Group();BG.add(mg);
-  const ARCH=(cfg!==1);
   let mirror,mirX0,mirX1,mirY0=1.15,mirY1;
-  if(ARCH){
-    mg.userData.info={t:'Specchio con profilo in alluminio e lampada LED',s:'80 \u00d7 90 cm con sommit\u00e0 curva R40, da 115 a 205 cm da terra, allineato al lavabo'};
-    mirror=archMirror(mg,{cx:MC,y0:1.15,w:0.80,h:0.90,r:0.40,z0:D-0.024,env:mr.rt.texture});
-    bx(MC-0.30,MC+0.30,2.085,2.110,D-0.095,D-0.003,M.alu,mg);bx(MC-0.29,MC+0.29,2.081,2.086,D-0.085,D-0.01,M.lampE,mg,false);
-    mirX0=MC-0.40;mirX1=MC+0.40;mirY1=2.05;
-  }else{
-    mg.userData.info={t:'Specchio con profilo in alluminio e lampada LED',s:Math.round(MW*100)+' \u00d7 82 cm, da 115 a 197 cm da terra, allineato al lavabo'};
-    bx(MX0,MX0+MW,1.15,1.97,D-0.024,D-0.003,M.alu,mg);
-    mirror=new THREE.Mesh(new THREE.PlaneGeometry(MW-0.014,0.806),new THREE.MeshBasicMaterial({color:0xe9ecec,envMap:mr.rt.texture}));
-    mirror.rotation.y=Math.PI;mirror.position.set(MC,1.56,D-0.0245);mg.add(mirror);
-    bx(MC-0.30,MC+0.30,1.985,2.01,D-0.095,D-0.003,M.alu,mg);bx(MC-0.29,MC+0.29,1.981,1.986,D-0.085,D-0.01,M.lampE,mg,false);
-    mirX0=MX0;mirX1=MX0+MW;mirY1=1.97;
-  }
+  mg.userData.info={t:'Specchio con profilo in alluminio e lampada LED',s:'80 \u00d7 90 cm con sommit\u00e0 curva R40, da 115 a 205 cm da terra, allineato al lavabo'};
+  mirror=archMirror(mg,{cx:MC,y0:1.15,w:0.80,h:0.90,r:0.40,z0:D-0.024,env:mr.rt.texture});
+  bx(MC-0.30,MC+0.30,2.085,2.110,D-0.095,D-0.003,M.alu,mg);bx(MC-0.29,MC+0.29,2.081,2.086,D-0.085,D-0.01,M.lampE,mg,false);
+  mirX0=MC-0.40;mirX1=MC+0.40;mirY1=2.05;
 
   /* tubular towel warmer 52 x 142, from 56 to 198 cm (re-read from the elevation) */
   const twm=new THREE.Group();BG.add(twm);twm.userData.info={t:'Scaldasalviette elettrico',s:'Circa 52 \u00d7 142 cm, da 56 a 198 cm da terra, spostato di 5 cm verso la parete della finestra'};
@@ -1025,7 +1025,7 @@ function buildTerra(cfg){
 
   const spots=downlights(ctx,[[0.59,0.49],[1.76,0.49],[0.59,1.46],[1.76,1.46]],{t:'Faretti a incasso',s:'4 faretti LED a soffitto, disposti su una griglia 2 \u00d7 2'},0.27,[0,2]);
   const L=roomLights(ctx,[-2.4,3.6,-0.3],[1.3,0.2,0.95]);
-  const vl=new THREE.SpotLight(0xfff1dc,0.9,3,1.25,1,1.2);vl.position.set(MC,ARCH?2.075:1.975,D-0.05);vl.target.position.set(MC,0.85,D-0.35);R.add(vl);R.add(vl.target);
+  const vl=new THREE.SpotLight(0xfff1dc,0.9,3,1.25,1,1.2);vl.position.set(MC,2.075,D-0.05);vl.target.position.set(MC,0.85,D-0.35);R.add(vl);R.add(vl.target);
   const envRT=new THREE.WebGLCubeRenderTarget(256,{generateMipmaps:false,minFilter:THREE.LinearFilter,magFilter:THREE.LinearFilter});
   const envCam=new THREE.CubeCamera(0.05,30,envRT);envCam.position.set(W/2,1.3,D/2);R.add(envCam);
   const dxf={
@@ -1068,7 +1068,7 @@ function buildTerra(cfg){
 function buildPrimo(cfg){
   const W=2.67,D=1.72,dR=W-2.70,dB=D-1.75;R=new THREE.Group();scene.add(R);
   const walls=makeWalls(W,D),ctx={W,D,walls},AG=walls.A.g,BG=walls.B.g,LG=walls.L.g,RG=walls.R.g;
-  const SX=cfg===1?1.10:1.00,SZ=cfg===1?0.75:0.80,DZ0=0.87+dB,DZ1=1.67+dB,DH=2.15,WZ0=0.38,WZ1=1.38,WY0=0.90,WY1=2.00;
+  const SX=1.00,SZ=0.80,DZ0=0.87+dB,DZ1=1.67+dB,DH=2.15,WZ0=0.38,WZ1=1.38,WY0=0.90,WY1=2.00;
   const tA=planeFrom(rect(W,H),null,M.paint);tA.position.set(0,0,0.002);AG.add(tA);
   const tB=planeFrom(rect(W,H+GH),null,M.paint);tB.rotation.y=Math.PI;tB.position.set(W,0,D-0.002);BG.add(tB);
   const tL=planeFrom([[0,0],[D-DZ1,0],[D-DZ1,DH],[D-DZ0,DH],[D-DZ0,0],[D,0],[D,H],[0,H]],null,M.paint);tL.rotation.y=Math.PI/2;tL.position.set(0.002,0,D);LG.add(tL);
@@ -1142,7 +1142,7 @@ function buildPrimo(cfg){
   bx(WX-0.125,WX+0.125,0.98,1.14,0.006,0.014,M.white,fp);bx(WX-0.11,WX-0.005,0.995,1.125,0.014,0.017,M.alu,fp);bx(WX+0.005,WX+0.11,0.995,1.125,0.014,0.017,M.alu,fp);
   file2Bidet(BX,'lato doccia');
 
-  /* shower 110 x 75: fixed side, fixed front panel + hinged door opening outwards */
+  /* shower 100 x 80: fixed side, fixed front panel + hinged door opening outwards */
   const shw=new THREE.Group();R.add(shw);
   shw.userData.info={t:'Piatto doccia '+Math.round(SX*100)+' \u00d7 '+Math.round(SZ*100)+' con box in cristallo',s:'Apertura angolare con due ante scorrevoli, pannelli fissi verso la porta e verso i sanitari, cristallo trasparente, h circa 200 cm'};
   bx(0,SX,0,0.03,0,SZ,M.tray,shw);
@@ -1172,10 +1172,10 @@ function buildPrimo(cfg){
   const ph=new THREE.Group();RG.add(ph);ph.userData.info={t:'Portarotolo',s:'Sulla parete della finestra, a fianco del vaso, a 72 cm da terra'};
   cy(0.008,0.07,W-0.035,0.72,0.50,'x',M.chrome,ph);cy(0.006,0.13,W-0.07,0.72,0.565,'z',M.chrome,ph);cy(0.052,0.10,W-0.07,0.72,0.57,'z',M.paper,ph);
 
-  /* MOON 043 nocciola tinta unita, mirror and 60 cm lamp */
-  const VL=cfg===3?0.80:1.00,VX=(cfg===1?1.43:W-(cfg===2?0.10:0.20)-VL)-(cfg===3?0.05:0),VC=VX+VL/2;
+  /* MOON 041 nocciola tinta unita, mirror and 60 cm lamp */
+  const VL=0.80,VX=W-0.20-VL-0.05,VC=VX+VL/2;
   const nocciola=memo('nocciolaTU',()=>std({color:0xc59c6e,roughness:0.5,metalness:0,envMapIntensity:0.5}));
-  const moP=buildMoon({x0:VX,yb:0.35,len:VL,center:cfg!==1,D:D,mat:nocciola,name:'nocciola tinta unita'});
+  const moP=buildMoon({x0:VX,yb:0.35,len:VL,center:true,D:D,mat:nocciola,name:'nocciola tinta unita'});
   let furn=moP.rects.map(rectPoly);
   let dxfFurn=furn.map(p=>({poly:p,y0:moP.y0,y1:moP.y1,label:'Mobile MOON'}));
   const col=buildColumn(W-0.10,0,'Nell\u2019angolo tra il vaso e la parete della finestra, copre una tubazione');
@@ -1188,17 +1188,9 @@ function buildPrimo(cfg){
   mirror.rotation.y=Math.PI;mirror.position.set(VC,1.635,D-0.0245);mg.add(mirror);
   bx(VC-0.30,VC+0.30,2.07,2.095,D-0.095,D-0.003,M.alu,mg);bx(VC-0.29,VC+0.29,2.066,2.071,D-0.085,D-0.026,M.lampE,mg,false);
 
-  /* towel warmer: flat panel in config 1, tubular 50 x 160 with exposed pipes in configs 2 and 3 */
+  /* towel warmer: tubular 50 x 160 with exposed pipes */
   let twU0,twU1,twV0,twV1;
-  if(cfg===1){
-    const twm=new THREE.Group();BG.add(twm);twm.userData.info={t:'Scaldasalviette elettrico a piastra',s:'Circa 30 \u00d7 173 cm, da 35 a 208 cm da terra, come da prospetto (modello indicativo)'};
-    const x0=0.93,x1=1.23,y0=0.35,y1=2.08,z0=D-0.055,z1=D-0.03,s0=1.055,s1=1.105,sy0=0.47,sy1=1.96;
-    bx(x0,s0,y0,y1,z0,z1,M.white,twm);bx(s1,x1,y0,y1,z0,z1,M.white,twm);
-    bx(s0,s1,y0,sy0,z0,z1,M.white,twm);bx(s0,s1,sy1,y1,z0,z1,M.white,twm);
-    [[x0+0.04,y0+0.2],[x1-0.04,y0+0.2],[x0+0.04,y1-0.2],[x1-0.04,y1-0.2]].forEach(p=>cy(0.008,0.03,p[0],p[1],D-0.015,'z',M.white,twm,12));
-    bx(0.965,1.195,1.0,1.52,z0-0.014,z0-0.003,M.towel,twm);bx(0.972,1.188,1.10,1.52,z0-0.024,z0-0.014,M.towel,twm);
-    twU0=W-x1;twU1=W-x0;twV0=y0;twV1=y1;
-  }else{towelRail({parent:BG,cx:1.18,w:0.50,h:1.60,y0:0.40,zc:D-0.055,towel:true});twU0=W-1.43;twU1=W-0.93;twV0=0.40;twV1=2.00;}
+  towelRail({parent:BG,cx:1.18,w:0.50,h:1.60,y0:0.40,zc:D-0.055,towel:true});twU0=W-1.43;twU1=W-0.93;twV0=0.40;twV1=2.00;
 
   const spots=downlights(ctx,[[0.45,0.44],[1.35,0.44],[2.25,0.44],[0.45,1.31],[1.35,1.31],[2.25,1.31]],{t:'Faretti a incasso',s:'6 faretti LED a soffitto, su due file da tre'},0.18,[1,5]);
   const L=roomLights(ctx,[W+2.6,3.4,0.8],[1.1,0.2,0.9]);
@@ -1432,7 +1424,7 @@ function exportPlanWithQuota(){
 }
 function labels(){
   const a=cur.anim;
-  document.querySelectorAll('#cfgs button[data-cfg]').forEach(b=>b.classList.toggle('on',+b.dataset.cfg===curCfg));
+  document.querySelectorAll('#cfgs button[data-cfg]').forEach(b=>{b.classList.toggle('on',+b.dataset.cfg===curCfg);b.style.display=+b.dataset.cfg<=NCFG[curKey]?'':'none';});
   $('bDoor').classList.toggle('on',!!a.doorGoal);$('bDoor').textContent=a.doorGoal?'Chiudi box doccia':'Apri box doccia';
   $('bRoom').classList.toggle('on',!!a.rdGoal);$('bRoom').textContent=a.rdGoal?'Chiudi porta':'Apri porta';
   const wn=cur.winNames||[];
@@ -1466,6 +1458,7 @@ window.addEventListener('resize',()=>{
 });
 
 /* ---------- home page and room switching ---------- */
+const NCFG={terra:2,primo:1};
 function openRoom(key,cfg,keepView){
   curKey=key;curCfg=cfg||1;
   const id=key+curCfg;
