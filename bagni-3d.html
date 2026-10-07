@@ -1135,10 +1135,12 @@ function buildPrimo(cfg){
   }
 
   /* File 2.0 wall hung WC FLV004 + bidet FLB001 */
-  file2WC(2.20,'lato finestra');
+  /* spazi uguali: bordo del piatto doccia (x=SX) | bidet | WC | colonna impianti (x=W-0.10) */
+  const SG=(W-0.10-SX-2*0.37)/3,BX=SX+SG+0.185,WX=BX+0.37+SG;
+  file2WC(WX,'lato finestra');
   const fp=new THREE.Group();AG.add(fp);fp.userData.info={t:'Placca di scarico',s:'Per la cassetta a incasso del vaso sospeso (indicativa)'};
-  bx(2.075,2.325,0.98,1.14,0.006,0.014,M.white,fp);bx(2.09,2.195,0.995,1.125,0.014,0.017,M.alu,fp);bx(2.205,2.31,0.995,1.125,0.014,0.017,M.alu,fp);
-  file2Bidet(1.54,'lato doccia');
+  bx(WX-0.125,WX+0.125,0.98,1.14,0.006,0.014,M.white,fp);bx(WX-0.11,WX-0.005,0.995,1.125,0.014,0.017,M.alu,fp);bx(WX+0.005,WX+0.11,0.995,1.125,0.014,0.017,M.alu,fp);
+  file2Bidet(BX,'lato doccia');
 
   /* shower 110 x 75: fixed side, fixed front panel + hinged door opening outwards */
   const shw=new THREE.Group();R.add(shw);
@@ -1212,8 +1214,8 @@ function buildPrimo(cfg){
     ],
     dxfFurn,shower:rectPoly([0,SX,0,SZ]),
     sanitary:[
-      {wall:'A',label:'WC',cx:2.20,cz:0.008,w:0.37,d:0.52,y0:0.07,y1:0.40},
-      {wall:'A',label:'Bidet',cx:1.54,cz:0.008,w:0.37,d:0.52,y0:0.07,y1:0.40}
+      {wall:'A',label:'WC',cx:WX,cz:0.008,w:0.37,d:0.52,y0:0.07,y1:0.40},
+      {wall:'A',label:'Bidet',cx:BX,cz:0.008,w:0.37,d:0.52,y0:0.07,y1:0.40}
     ],
     wallItems:[
       {wall:'B',layer:'ARREDO',label:'Specchio',u0:W-(VX+VL),u1:W-VX,v0:1.20,v1:2.07},
