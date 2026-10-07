@@ -953,10 +953,11 @@ function buildTerra(cfg){
   bx(W+0.044,W+0.056,0.97,1.11,1.848,1.852,M.alu,leaf);
 
   /* File 2.0 wall hung WC FLV004 + bidet FLB001 */
-  file2WC(0.46,'lato finestra');
+  /* spazi uguali di 26 cm: parete finestra | WC | bidet | bordo del piatto doccia (x=1.52) */
+  file2WC(0.445,'lato finestra');
   const fp=new THREE.Group();AG.add(fp);fp.userData.info={t:'Placca di scarico',s:'Per la cassetta a incasso del vaso sospeso (indicativa)'};
-  bx(0.335,0.585,0.98,1.14,0.006,0.014,M.white,fp);bx(0.35,0.455,0.995,1.125,0.014,0.017,M.alu,fp);bx(0.465,0.57,0.995,1.125,0.014,0.017,M.alu,fp);
-  file2Bidet(1.12,'lato doccia');
+  bx(0.32,0.57,0.98,1.14,0.006,0.014,M.white,fp);bx(0.335,0.44,0.995,1.125,0.014,0.017,M.alu,fp);bx(0.45,0.555,0.995,1.125,0.014,0.017,M.alu,fp);
+  file2Bidet(1.075,'lato doccia');
   const ph=new THREE.Group();AG.add(ph);ph.userData.info={t:'Portarotolo',s:'Sulla parete dei sanitari, a fianco del vaso, a 72 cm da terra'};
   cy(0.008,0.07,0.18,0.72,0.035,'z',M.chrome,ph);cy(0.006,0.13,0.115,0.72,0.07,'x',M.chrome,ph);cy(0.052,0.10,0.11,0.72,0.07,'x',M.paper,ph);
 
@@ -1036,8 +1037,8 @@ function buildTerra(cfg){
     ],
     dxfFurn,shower:rectPoly([SHX,W,0,1.00]),
     sanitary:[
-      {wall:'A',label:'WC',cx:0.46,cz:0.008,w:0.37,d:0.52,y0:0.07,y1:0.40},
-      {wall:'A',label:'Bidet',cx:1.12,cz:0.008,w:0.37,d:0.52,y0:0.07,y1:0.40}
+      {wall:'A',label:'WC',cx:0.445,cz:0.008,w:0.37,d:0.52,y0:0.07,y1:0.40},
+      {wall:'A',label:'Bidet',cx:1.075,cz:0.008,w:0.37,d:0.52,y0:0.07,y1:0.40}
     ],
     wallItems:[
       {wall:'B',layer:'ARREDO',label:'Specchio',u0:W-mirX1,u1:W-mirX0,v0:mirY0,v1:mirY1},
