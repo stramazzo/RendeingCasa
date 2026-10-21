@@ -53,6 +53,7 @@ body.idle .tag,body.idle #bHome,body.idle .bar,body.idle #info{opacity:0;pointer
   <div class="row" id="cfgs">
     <button data-cfg="1" class="on">Config. 1</button>
     <button data-cfg="2">Config. 2</button>
+    <button data-cfg="3">Config. 3</button>
     <button id="bDxf">Scarica DXF</button>
     <button id="bPlanQuota">Pianta con quota</button>
   </div>
@@ -82,7 +83,7 @@ body.idle .tag,body.idle #bHome,body.idle .bar,body.idle #info{opacity:0;pointer
           <path d="M0 0 H232 V102 M232 182 V192 H0 V62 M0 14 V0" fill="none" stroke="#4a443d" stroke-width="3.2"/>
           <path d="M-4 14 V62 M4 14 V62" stroke="#8fb0c4" stroke-width="1.6"/>
         </svg>
-        <span><b>Bagno piano terra</b><span class="d">232 × 192 cm al filo finito · sanitari sospesi File 2.0 · 2 configurazioni con mensole in legno: lavabo Geberit Fantasia 66 o The.Artceram WON 55</span></span>
+        <span><b>Bagno piano terra</b><span class="d">232 × 192 cm al filo finito · sanitari sospesi File 2.0 · 3 configurazioni con mensole in legno: lavabo Geberit Fantasia 66 o The.Artceram WON 55, doccia 80×100 o 100×80</span></span>
         <span class="go">Apri il bagno</span>
       </button>
       <button class="card" data-room="primo">
@@ -893,7 +894,11 @@ function file2Bidet(x,side){
 function buildTerra(cfg){
   const W=2.32,D=1.92,dR=W-2.35,dB=D-1.95;R=new THREE.Group();scene.add(R);
   const walls=makeWalls(W,D),ctx={W,D,walls},AG=walls.A.g,BG=walls.B.g,LG=walls.L.g,RG=walls.R.g;
-  const WY0=0.90,WY1=1.90,SHX=W-0.80;
+  /* piatto doccia nell'angolo fra la parete dei sanitari (A) e quella della porta (R):
+     SW lungo la parete A, SD lungo la parete R. Config. 1 e 2: 80 x 100; config. 3: lato lungo
+     da 100 sulla parete dei sanitari, 100 x 80 */
+  const SW=cfg===3?1.00:0.80,SD=cfg===3?0.80:1.00;
+  const WY0=0.90,WY1=1.90,SHX=W-SW;
   const tA=planeFrom(rect(W,H),null,M.paint);tA.position.set(0,0,0.002);AG.add(tA);
   const tB=planeFrom(rect(W,H+GH),null,M.paint);tB.rotation.y=Math.PI;tB.position.set(W,0,D-0.002);BG.add(tB);
   /* foro a "L" nella finitura della parete L per rendere visibile la resede sottostante:
@@ -926,7 +931,7 @@ function buildTerra(cfg){
   /* tiles: GC01 outside the shower, decor 60 x 120 inside */
   const SH={t:'Rivestimento doccia, decoro su fondo cemento chiaro',s:'60 \u00d7 120 cm in orizzontale, fino a 240 cm, come nel campione fotografato (IMG_5508). Texture ricostruita, indicativa'};
   const mS=std({map:damaskTex(),roughness:0.55,envMapIntensity:0.55}),mW=getGC01();
-  const XS=SHX+0.01,ZS=0.99;
+  const XS=SHX+0.01,ZS=SD-0.01;
   /* la parete della finestra resta senza rivestimento GC01 per intero */
   wallPlane(ctx,'A',0,XS,0,TW,mW,GC01);wallPlane(ctx,'B',0,W,0,TW,mW,GC01);
   wallPlane(ctx,'R',ZS,1.0,0,TW,mW,GC01);wallPlane(ctx,'R',1.86+dB,D,0,TW,mW,GC01);
@@ -964,36 +969,40 @@ function buildTerra(cfg){
   bx(W+0.044,W+0.056,0.97,1.11,1.848,1.852,M.alu,leaf);
 
   /* File 2.0 wall hung WC FLV004 + bidet FLB001 */
-  /* spazi uguali di 26 cm: parete finestra | WC | bidet | bordo del piatto doccia (x=1.52) */
-  file2WC(0.445,'lato finestra');
+  /* spazi uguali: parete finestra | WC | bidet | bordo del piatto doccia (x=SHX);
+     26 cm con la doccia da 80 sulla parete, 19,3 cm con quella da 100 */
+  const SG=(SHX-2*0.37)/3,WX=SG+0.185,BX=WX+0.37+SG;
+  file2WC(WX,'lato finestra');
   const fp=new THREE.Group();AG.add(fp);fp.userData.info={t:'Placca di scarico',s:'Per la cassetta a incasso del vaso sospeso (indicativa)'};
-  bx(0.32,0.57,0.98,1.14,0.006,0.014,M.white,fp);bx(0.335,0.44,0.995,1.125,0.014,0.017,M.alu,fp);bx(0.45,0.555,0.995,1.125,0.014,0.017,M.alu,fp);
-  file2Bidet(1.075,'lato doccia');
+  bx(WX-0.125,WX+0.125,0.98,1.14,0.006,0.014,M.white,fp);bx(WX-0.11,WX-0.005,0.995,1.125,0.014,0.017,M.alu,fp);bx(WX+0.005,WX+0.11,0.995,1.125,0.014,0.017,M.alu,fp);
+  file2Bidet(BX,'lato doccia');
   const ph=new THREE.Group();AG.add(ph);ph.userData.info={t:'Portarotolo',s:'Sulla parete dei sanitari, a fianco del vaso, a 72 cm da terra'};
   cy(0.008,0.07,0.18,0.72,0.035,'z',M.chrome,ph);cy(0.006,0.13,0.115,0.72,0.07,'x',M.chrome,ph);cy(0.052,0.10,0.11,0.72,0.07,'x',M.paper,ph);
 
-  /* shower 80 x 100, corner entry with two sliding doors */
-  const RW=2.35;const shw=new THREE.Group();shw.position.x=dR;R.add(shw);
-  shw.userData.info={t:'Piatto doccia 80 \u00d7 100 con box in cristallo',s:'Apertura angolare con due ante scorrevoli, cristallo trasparente, h 195 cm'};
-  bx(1.55,RW,0,0.03,0,1.0,M.tray,shw);
-  cy(0.045,0.003,1.95,0.0315,0.5,'y',M.chrome,shw,32);
+  /* shower SW x SD, corner entry with two sliding doors: fixed panels against the walls,
+     sliding doors meeting at the outer corner (X0,SD) */
+  const X0=SHX,FL=SW*0.5625,SL=SD*0.52;
+  const shw=new THREE.Group();R.add(shw);
+  shw.userData.info={t:'Piatto doccia '+Math.round(SW*100)+' \u00d7 '+Math.round(SD*100)+' con box in cristallo',s:'Lato da '+Math.round(SW*100)+' cm lungo la parete dei sanitari. Apertura angolare con due ante scorrevoli, cristallo trasparente, h 195 cm'};
+  bx(X0,W,0,0.03,0,SD,M.tray,shw);
+  cy(0.045,0.003,(X0+W)/2,0.0315,SD/2,'y',M.chrome,shw,32);
   const gl=(x0,x1,z0,z1,p)=>{const m=bx(x0,x1,0.035,1.985,z0,z1,M.glass,p,false);m.receiveShadow=false;m.renderOrder=2;return m;};
-  gl(1.97,RW-0.02,0.972,0.978,shw);gl(1.572,1.578,0.02,0.55,shw);
-  const doorF=new THREE.Group();shw.add(doorF);gl(1.56,2.0,0.986,0.992,doorF);bx(1.61,1.625,0.9,1.25,0.992,1.018,M.chrome,doorF);
-  const doorS=new THREE.Group();shw.add(doorS);gl(1.558,1.564,0.52,0.992,doorS);bx(1.532,1.558,0.9,1.25,0.93,0.945,M.chrome,doorS);
-  bx(RW-0.02,RW-0.002,0.03,1.985,0.962,0.99,M.chrome,shw);bx(1.562,1.59,0.03,1.985,0.006,0.024,M.chrome,shw);
-  bx(1.556,RW-0.002,1.985,2.005,0.965,0.998,M.chrome,shw);bx(1.552,1.584,1.985,2.005,0.006,0.998,M.chrome,shw);
-  const sm=new THREE.Group();sm.position.x=dR;AG.add(sm);sm.userData.info={t:'Soffione doccia',s:'Indicativo, non specificato nel progetto'};
-  cy(0.011,0.50,1.95,2.18,0.25,'z',M.chrome,sm);bx(1.83,2.07,2.162,2.172,0.38,0.62,M.chrome,sm);
-  sm.userData.info={t:'Soffione doccia',s:'Braccio dalla parete corta della doccia, soffione centrato sul piatto (indicativo)'};
-  gintonicWall(AG,1.95+dR,1.10,0.006);
-  handShower(AG,2.24+dR,0.02,0,-0.29);
+  gl(X0+FL-0.03,W-0.02,SD-0.028,SD-0.022,shw);gl(X0+0.022,X0+0.028,0.02,SL+0.03,shw);
+  const doorF=new THREE.Group();shw.add(doorF);gl(X0+0.01,X0+FL,SD-0.014,SD-0.008,doorF);bx(X0+0.06,X0+0.075,0.9,1.25,SD-0.008,SD+0.018,M.chrome,doorF);
+  const doorS=new THREE.Group();shw.add(doorS);gl(X0+0.008,X0+0.014,SL,SD-0.008,doorS);bx(X0-0.018,X0+0.008,0.9,1.25,SD-0.07,SD-0.055,M.chrome,doorS);
+  bx(W-0.02,W-0.002,0.03,1.985,SD-0.038,SD-0.01,M.chrome,shw);bx(X0+0.012,X0+0.04,0.03,1.985,0.006,0.024,M.chrome,shw);
+  bx(X0+0.006,W-0.002,1.985,2.005,SD-0.035,SD-0.002,M.chrome,shw);bx(X0+0.002,X0+0.034,1.985,2.005,0.006,SD-0.002,M.chrome,shw);
+  const sm=new THREE.Group();AG.add(sm);
+  cy(0.011,SD/2,(X0+W)/2,2.18,SD/4,'z',M.chrome,sm);bx((X0+W)/2-0.12,(X0+W)/2+0.12,2.162,2.172,SD/2-0.12,SD/2+0.12,M.chrome,sm);
+  sm.userData.info={t:'Soffione doccia',s:'Braccio dalla parete dei sanitari, soffione centrato sul piatto (indicativo)'};
+  gintonicWall(AG,(X0+W)/2,1.10,0.006);
+  handShower(AG,W-0.11,0.02,0,-0.29);
 
   /* plasterboard duct casing in the corner between the vanity and the window wall */
   const col=buildColumn(0,D-0.10,'Nell\u2019angolo tra il lavabo e la parete della finestra, copre una tubazione');
-  /* due mensole in legno con lavabo sospeso: config. 1 Geberit Fantasia 66, config. 2 The.Artceram WON WNL003 */
+  /* due mensole in legno con lavabo sospeso: config. 1 Geberit Fantasia 66, config. 2 e 3 The.Artceram WON WNL003 */
   const wood=woodMat([168,136,104]);
-  const sh=buildShelves({x0:0,cx:0.70,top:0.70,col:0.10,D:D,mat:wood,basin:cfg===2?'won':'fantasia'});
+  const sh=buildShelves({x0:0,cx:0.70,top:0.70,col:0.10,D:D,mat:wood,basin:cfg===1?'fantasia':'won'});
   let furn=sh.polys,dxfFurn=furn.map(p=>({poly:p,y0:sh.y0,y1:sh.y1,label:'Mensole e lavabo'}));
   const MX0=0.30,MW=0.80;
   furn=furn.concat([rectPoly(col.rect)]);
@@ -1035,7 +1044,7 @@ function buildTerra(cfg){
       {wall:'L',type:'window',from:0.14,to:0.625,y0:WY0,y1:WY1},
       {wall:'R',type:'door',from:1.05+dB,to:1.86+dB,y0:0,y1:2.10}
     ],
-    dxfFurn,shower:rectPoly([SHX,W,0,1.00]),
+    dxfFurn,shower:rectPoly([SHX,W,0,SD]),
     sanitary:[
       {wall:'A',label:'WC',cx:0.445,cz:0.008,w:0.37,d:0.52,y0:0.07,y1:0.40},
       {wall:'A',label:'Bidet',cx:1.075,cz:0.008,w:0.37,d:0.52,y0:0.07,y1:0.40}
@@ -1047,9 +1056,9 @@ function buildTerra(cfg){
   };
   return {
     key:'terra',cfg:cfg,name:'Bagno piano terra',title:'Bagno piano terra, 232 \u00d7 192 cm',W,D,R,walls,spots,vl,hemi:L.hemi,sun:L.sun,mirror,mirCam:mr.cam,envCam,envRT,dxf,
-    furn:furn,shower:rectPoly([SHX,W,0,1.00]),
+    furn:furn,shower:rectPoly([SHX,W,0,SD]),
     dayI:0.27,nightI:0.42,
-    showerAnim:e=>{doorF.position.x=0.32*e;doorS.position.z=-0.40*e;},
+    showerAnim:e=>{doorF.position.x=SW*0.4*e;doorS.position.z=-SD*0.4*e;},
     doorAnim:e=>{leaf.position.z=-0.79*e;},
     winNames:nicheCab?['finestra','mobiletto']:['finestra'],
     winAnim:nicheCab?[e=>{wLeaf.rotation.y=Math.PI/2*e;},nicheCab.anim]
@@ -1458,7 +1467,7 @@ window.addEventListener('resize',()=>{
 });
 
 /* ---------- home page and room switching ---------- */
-const NCFG={terra:2,primo:1};
+const NCFG={terra:3,primo:1};
 function openRoom(key,cfg,keepView){
   curKey=key;curCfg=cfg||1;
   const id=key+curCfg;
