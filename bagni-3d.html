@@ -54,6 +54,8 @@ body.idle .tag,body.idle #bHome,body.idle .bar,body.idle #info{opacity:0;pointer
     <button data-cfg="1" class="on">Config. 1</button>
     <button data-cfg="2">Config. 2</button>
     <button data-cfg="3">Config. 3</button>
+    <button data-cfg="4">Config. 4</button>
+    <button data-cfg="5">Config. 5</button>
     <button id="bDxf">Scarica DXF</button>
     <button id="bPlanQuota">Pianta con quota</button>
   </div>
@@ -83,7 +85,7 @@ body.idle .tag,body.idle #bHome,body.idle .bar,body.idle #info{opacity:0;pointer
           <path d="M0 0 H232 V102 M232 182 V192 H0 V62 M0 14 V0" fill="none" stroke="#4a443d" stroke-width="3.2"/>
           <path d="M-4 14 V62 M4 14 V62" stroke="#8fb0c4" stroke-width="1.6"/>
         </svg>
-        <span><b>Bagno piano terra</b><span class="d">232 × 192 cm al filo finito · sanitari sospesi File 2.0 · 3 configurazioni con mensole in legno: lavabo Geberit Fantasia 66 o The.Artceram WON 55, doccia 80×100 o 100×80</span></span>
+        <span><b>Bagno piano terra</b><span class="d">232 × 192 cm al filo finito · sanitari sospesi File 2.0 · 5 configurazioni con mensole in legno: lavabo Geberit Fantasia 66, The.Artceram WON 55 o Ideal Standard i.life A 60 / 65, doccia 80×100 o 100×80</span></span>
         <span class="go">Apri il bagno</span>
       </button>
       <button class="card" data-room="primo">
@@ -448,8 +450,26 @@ function buildShelves(o){
     bx(a0+0.22,a1-0.22,b1-0.030,b1-0.010,v0-0.004,v0,M.gap,dw,false);
   }
   const bs=new THREE.Group();R.add(bs);
-  const RT=0.85,BB=0.702,WON=o.basin==='won',BW=WON?0.55:0.66,BD=WON?0.43:0.44;
-  if(WON){
+  const RT=0.85,BB=0.702,WON=o.basin==='won',IL=o.basin==='ilife60'||o.basin==='ilife65';
+  const BW=WON?0.55:IL?(o.basin==='ilife65'?0.65:0.60):0.66,BD=WON?0.43:IL?0.48:0.44;
+  if(IL){
+    /* lavabo Ideal Standard i.life A (60: T451101, 65: T451001), 60/65 x 48 x 15, monoforo con
+       troppopieno: vasca rettangolare a bordo sottile con angoli raccordati, piano posteriore per
+       il miscelatore; stessa posa degli altri (bordo a 85 cm, fondo sul piano del mobile a 70 cm).
+       Sagoma ricostruita, indicativa */
+    const a=BW/2,cm=Math.round(BW*100);
+    bs.userData.info={t:'Lavabo Ideal Standard i.life A '+cm+(cm===65?' (T451001)':' (T451101)'),s:cm+' \u00d7 48 \u00d7 15 cm, ceramica bianca, monoforo con troppopieno, sospeso a parete con bordo a 85 cm da terra, asse a 70 cm dalla parete della finestra. Il fondo appoggia sul piano del mobile a 70 cm e la vasca sporge di 8 cm oltre la mensola. Forma indicativa'};
+    const eo=(yy,aa,d,n)=>ringX(yy,cx,aa,D-d,D,14,n);
+    const ei=(yy,aa,d0,d1,n)=>ringX(yy,cx,aa,D-d0,D-d1,n,n);
+    const rs=[
+      eo(BB,a-0.05,0.40,5),eo(BB+0.015,a-0.02,0.455,6),eo(0.76,a-0.004,0.476,7),
+      eo(RT-0.006,a,0.480,7.5),eo(RT,a-0.003,0.477,7.5),
+      ei(RT,a-0.015,0.465,0.115,7.5),ei(RT-0.004,a-0.019,0.461,0.119,7.5),
+      ei(0.815,a-0.03,0.448,0.13,6.5),ei(0.77,a-0.06,0.42,0.15,5.5),ei(0.735,a-0.12,0.37,0.19,4)];
+    add(new THREE.Mesh(loft(rs,[cx,BB,D-0.24],[cx,0.735,D-0.28]),M.ceramic),bs);
+    cy(0.018,0.004,cx,0.737,D-0.28,'y',M.chrome,bs,32);
+    bx(cx-0.025,cx+0.025,0.815,0.822,D-0.13,D-0.124,M.gap,bs,false);
+  }else if(WON){
     /* lavabo The.Artceram WON WNL003, 55 x 43, sospeso o da appoggio: vasca squadrata a
        spigoli morbidi con bordo spesso e piano posteriore monoforo; stessa posa del Fantasia
        (bordo a 85 cm, fondo sul piano del mobile a 70 cm). Sagoma ricostruita, indicativa */
@@ -484,7 +504,7 @@ function buildShelves(o){
 
   /* sagoma reale in pianta, usata per distanze, ingombri e collisioni */
   const poly=shape.getPoints(72).map(p=>[x0+p.x,D-p.y]);
-  /* bacino (66 x 44 Fantasia o 55 x 43 WON) a spigoli raccordati: la sagoma in pianta
+  /* bacino (66 x 44 Fantasia, 55 x 43 WON, 60/65 x 48 i.life A) a spigoli raccordati: la sagoma in pianta
      usata per le distanze ha quindi gli angoli arrotondati (raggio 10 cm), non spigoli vivi */
   return {group:gr,polys:[poly,roundedRectPoly([cx-BW/2,cx+BW/2,D-BD,D],0.10)],y0:yB,y1:RT};
 }
@@ -1000,9 +1020,10 @@ function buildTerra(cfg){
 
   /* plasterboard duct casing in the corner between the vanity and the window wall */
   const col=buildColumn(0,D-0.10,'Nell\u2019angolo tra il lavabo e la parete della finestra, copre una tubazione');
-  /* due mensole in legno con lavabo sospeso: config. 1 Geberit Fantasia 66, config. 2 e 3 The.Artceram WON WNL003 */
+  /* due mensole in legno con lavabo sospeso: config. 1 Geberit Fantasia 66, config. 2 e 3 The.Artceram WON WNL003,
+     config. 4 e 5 Ideal Standard i.life A 60 e 65 */
   const wood=woodMat([168,136,104]);
-  const sh=buildShelves({x0:0,cx:0.70,top:0.70,col:0.10,D:D,mat:wood,basin:cfg===1?'fantasia':'won'});
+  const sh=buildShelves({x0:0,cx:0.70,top:0.70,col:0.10,D:D,mat:wood,basin:['fantasia','won','won','ilife60','ilife65'][cfg-1]});
   let furn=sh.polys,dxfFurn=furn.map(p=>({poly:p,y0:sh.y0,y1:sh.y1,label:'Mensole e lavabo'}));
   const MX0=0.30,MW=0.80;
   furn=furn.concat([rectPoly(col.rect)]);
@@ -1467,7 +1488,7 @@ window.addEventListener('resize',()=>{
 });
 
 /* ---------- home page and room switching ---------- */
-const NCFG={terra:3,primo:1};
+const NCFG={terra:5,primo:1};
 function openRoom(key,cfg,keepView){
   curKey=key;curCfg=cfg||1;
   const id=key+curCfg;
