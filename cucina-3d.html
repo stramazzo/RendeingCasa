@@ -61,13 +61,13 @@
        Trascina per ruotare, pizzica per lo zoom, tocca un elemento per i dettagli.</p>
     <ul>
       <li><b>Parete cottura</b> 352 cm: base 95 + base 120 (piano cottura in asse a 155) + colonna forno/micro 60 (asse 245) + colonna frigo 60 (asse 305) + fianco 17</li>
-      <li><b>Parete lavello</b> 395 cm: angolo 95 + lavastoviglie 60 + lavello 90 a incasso (asse 200) + base 50 + <b>termocucina a legna</b> da 80, spalle al muro e fronte a filo dei mobili, canna fumaria a destra</li>
+      <li><b>Parete lavello</b> 395 cm: angolo 95 + lavastoviglie 60 + lavello 90 a incasso (asse 200) + base 50 + <b>termocucina Rizzoli RTVE 80</b> (80 × 60), rialzata di 8 cm per avere il piano a 94 come la cucina, spalle al muro e fronte a filo dei mobili, uscita fumi a destra</li>
       <li><b>Finiture</b>: pavimento in gres Mirage Glocal GC07 SP Sugar, pareti bianche, ante e piano ripresi dal render</li>
       <li><b>Impianti e luci</b>: cappa H.200 · micro H.160 · forno H.90 · frigo H.160 · prese H.106÷110 · uscite LED · faretti a soffitto</li>
       <li>Le <b>tre configurazioni</b> per ora sono identiche: sono segnaposto da differenziare quando decidiamo le varianti</li>
     </ul>
     <button class="cta" id="go">Apri la cucina</button>
-    <div class="note">Quote non presenti sugli schemi (piano a 90, pensili H.60 a quota 145, colonne H.225, finestra 120 × 125 con davanzale a 110, soffitto 270) sono ipotesi standard.</div>
+    <div class="note">Quote non presenti sugli schemi (pensili H.60 a quota 145, colonne H.225, finestra 120 × 125 con davanzale a 110, soffitto 270) sono ipotesi standard.</div>
   </div>
 </div>
 
@@ -114,8 +114,9 @@
    ===================================================================== */
 
 const ROOM = { w: 430, d: 470, h: 270 };
-const DEPTH_B = 60, DEPTH_T = 3;
-const H_TOP = 90, H_PLINTH = 10;
+/* piano di lavoro a 94: basi a 92 + piano da 2 cm */
+const DEPTH_B = 60, DEPTH_T = 2;
+const H_TOP = 94, H_PLINTH = 10;
 const H_WALL_UNIT = 145, HU = 60, DEPTH_W = 35;
 const H_TALL = 225;
 const SINK_Z = 200, HOB_X = 155;
@@ -251,6 +252,7 @@ function buildMaterials(){
     /* termocucina a legna smaltata rossa */
     rosso:   std({color:0x9d1f1c, roughness:0.30, metalness:0.12, envMapIntensity:1.1}),
     ghisa:   std({color:0x24242a, roughness:0.62, metalness:0.3}),
+    vceram:  std({color:0x111114, roughness:0.08, metalness:0.2, envMapIntensity:1.3}),
     fuoco:   std({color:0xff8a1f, emissive:0xff6a00, emissiveIntensity:1.0}),
     vetroW:  std({color:0xdfe9ee, transparent:true, opacity:0.25, roughness:0.05, metalness:0.2, depthWrite:false}),
     lacca:   std({color:0xf4f2ee, roughness:0.42}),
@@ -526,14 +528,14 @@ function buildLavello(){
 
 function buildTop(){
   const infoA = ['Piano di lavoro · parete lavello','Dall\'angolo fino alla termocucina (295 cm), profondità 60, con foro per il lavello a incasso.'];
-  const infoB = ['Piano di lavoro · parete cottura','Marmo chiaro come nel render, profondità 60, quota 90 (ipotesi). Si interrompe sulle colonne, che sono a tutta altezza.'];
+  const infoB = ['Piano di lavoro · parete cottura','Marmo chiaro come nel render, profondità 60, quota 94 (basi a 92 + piano da 2 cm). Si interrompe sulle colonne, che sono a tutta altezza.'];
   /* il piano corre solo sopra le basi: si ferma alle colonne (215÷335) e riprende sul fianco */
   box(215, DEPTH_T, DEPTH_B, M.top, 0, H_TOP-DEPTH_T, 0, gKitchen, infoB);
   box(352-335, DEPTH_T, DEPTH_B, M.top, 335, H_TOP-DEPTH_T, 0, gKitchen, infoB);
   /* il piano della parete lavello è in quattro pezzi, così il foro della vasca è reale;
      si ferma dove inizia la termocucina, che è un apparecchio a sé */
-  /* -2 perché il piano in ghisa e l'alzatina della termocucina sbordano di 2 cm dal corpo */
-  const y = H_TOP-DEPTH_T, zA = DEPTH_B, zE = STOVE.z0-2;
+  /* il piano della Rizzoli RTVE 80 e' largo come il corpo (80): il piano di lavoro arriva fino al suo fianco */
+  const y = H_TOP-DEPTH_T, zA = DEPTH_B, zE = STOVE.z0;
   box(SINK.x0, DEPTH_T, zE-zA, M.top, 0, y, zA, gKitchen, infoA);
   box(DEPTH_B-SINK.x1, DEPTH_T, zE-zA, M.top, SINK.x1, y, zA, gKitchen, infoA);
   box(SINK.x1-SINK.x0, DEPTH_T, SINK.z0-zA, M.top, SINK.x0, y, zA, gKitchen, infoA);
@@ -603,46 +605,52 @@ function buildPensili(){
     ['Linea LED sopra le colonne','Alimentata dall\'uscita “LED H.217” dello schema a mano; la linea luminosa è posata sopra le colonne, a 225 cm.']);
 }
 
-/* ---------- termocucina a legna, smaltata rossa, spalle alla parete finestra ---------- */
+/* ---------- termocucina a legna Rizzoli RTVE 80, spalle alla parete finestra ----------
+   Dati Rizzoli: L 800 x P 600, H 850/860 (piano da 30 o 40 mm, esclusa alzatina 60 x 15),
+   piedini regolabili fino a 910; forno sul lato dell'uscita fumi (qui a destra guardando la
+   termocucina), focolare a sinistra, uscita fumi posteriore Ø 150. Con il piano da 40 mm arriva
+   a 86: un rialzo di 8 cm la porta a 94, come il piano della cucina. */
 function buildTermocucina(){
   const g = new THREE.Group();
   g.position.set(STOVE.cx, 0, STOVE.cz);
-  g.rotation.y = STOVE.rot;       /* spalle al muro, fronte (+x locale) verso la stanza */
+  g.rotation.y = STOVE.rot;       /* spalle al muro, fronte (+x locale) verso la stanza; destra = -z locale */
   gKitchen.add(g);
-  const W = STOVE.w, D = STOVE.d, HB = 85;   /* larghezza 80, profondità 60, piano a 85 */
-  const info = ['Termocucina a legna 80','Smaltata rossa, larghezza 80 × profondità 60, piano in ghisa a 85 cm. Spalle alla parete della finestra e fronte allineato al resto della mobilia (filo 60). Nello schema la zona riservata è 100 cm: restano 20 cm liberi verso il fondo.'];
+  const W = STOVE.w, D = STOVE.d, RIS = 8, HS = 86, TT = 4;   /* rialzo 8, termocucina H 86 (piano 4 cm) */
+  const y0 = RIS, HB = RIS+HS-TT, HT = RIS+HS;                 /* HT = 94 */
+  const info = ['Termocucina Rizzoli RTVE 80','A legna con forno, larghezza 80 × profondità 60 × altezza 86 (piano da 4 cm), posata su un rialzo di 8 cm: il piano arriva a 94 cm come quello della cucina. Spalle alla parete della finestra, fronte a filo dei mobili (60). Forno a destra sul lato dell\u2019uscita fumi, focolare a sinistra. Finitura rossa indicativa. Nella zona riservata di 100 cm restano 20 cm liberi verso il fondo.'];
   g.userData.info = info;
 
-  lbox(D, 10, W, M.ghisa, 0, 5, 0, g, info);                    /* zoccolo */
-  lbox(D, HB-10, W, M.rosso, 0, 10+(HB-10)/2, 0, g, info);      /* corpo smaltato */
-  lbox(D+4, 5, W+4, M.ghisa, 0, HB+2.5, 0, g,
-    ['Piano in ghisa','Piastra radiante con cerchi concentrici, sopra il focolare.']);
-  /* alzatina posteriore */
-  lbox(12, 22, W+4, M.rosso, -D/2+6, HB+16, 0, g, info);
-  /* porta del focolare con vetro e porta del forno */
-  lbox(2, 30, W*0.42, M.ghisa, D/2+1, 58, -W*0.22, g, ['Focolare','Porta in ghisa con vetro ceramico.']);
-  lbox(1.5, 22, W*0.32, M.fuoco, D/2+2.2, 58, -W*0.22, g);
-  lbox(2, 30, W*0.42, M.ghisa, D/2+1, 26, -W*0.22, g, ['Cassetto cenere','Sotto il focolare.']);
-  lbox(2, 46, W*0.44, M.ghisa, D/2+1, 46, W*0.24, g, ['Forno a legna','Porta con vetro e maniglia cromata.']);
-  lbox(1.5, 30, W*0.34, M.vetro, D/2+2.2, 46, W*0.24, g);
-  /* maniglione anteriore cromato */
+  lbox(D-4, RIS, W-4, M.zoccolo, -2, RIS/2, 0, g,
+    ['Rialzo 8 cm','Basamento sotto la termocucina per portare il piano a 94 cm (la RTVE 80 è regolabile solo fino a 91).']);
+  lbox(D, 8, W, M.ghisa, 0, y0+4, 0, g, info);                          /* zoccolo con piedini */
+  lbox(D, HB-y0-8, W, M.rosso, 0, y0+8+(HB-y0-8)/2, 0, g, info);        /* corpo smaltato */
+  lbox(D, TT, W, M.vceram, 0, HB+TT/2, 0, g,
+    ['Piano di cottura','Piano da 4 cm sopra il focolare, a 94 cm da terra dopo il rialzo.']);
+  lbox(1.5, 6, W, M.inox, -D/2+0.75, HT+3, 0, g, ['Alzatina','6 × 1,5 cm, lungo il lato posteriore.']);
+  /* fronte: focolare a sinistra (+z), forno a destra (-z), cassetto cenere sotto il focolare */
+  const zF = W*0.24, zO = -W*0.22, yF = y0+55, yO = y0+46;
+  lbox(2, 30, W*0.40, M.ghisa, D/2+1, yF, zF, g, ['Focolare','A sinistra guardando la termocucina, porta con vetro ceramico.']);
+  lbox(1.5, 22, W*0.30, M.fuoco, D/2+2.2, yF, zF, g);
+  lbox(2, 24, W*0.40, M.ghisa, D/2+1, y0+24, zF, g, ['Cassetto cenere','Sotto il focolare.']);
+  lbox(2, 46, W*0.44, M.ghisa, D/2+1, yO, zO, g, ['Forno','A destra, sul lato dell\u2019uscita fumi. Porta con vetro; forno interno 35 × 26 × 43 cm.']);
+  lbox(1.5, 30, W*0.34, M.vetro, D/2+2.2, yO, zO, g);
+  /* maniglione anteriore cromato, sotto il piano */
+  const yBar = HB-8;
   const bar = new THREE.Mesh(new THREE.CylinderGeometry(1.4,1.4,W+2,14), M.inox);
-  bar.rotation.x = Math.PI/2; bar.position.set(D/2+7, 72, 0); g.add(bar);
-  [-1,1].forEach(s=>{
+  bar.rotation.x = Math.PI/2; bar.position.set(D/2+7, yBar, 0); g.add(bar);
+  [-1,1].forEach(sg=>{
     const st = new THREE.Mesh(new THREE.BoxGeometry(8,3,3), M.inox);
-    st.position.set(D/2+3.5, 72, s*(W/2-2)); g.add(st);
+    st.position.set(D/2+3.5, yBar, sg*(W/2-2)); g.add(st);
   });
-  /* canna fumaria: uscita sul lato destro guardando la termocucina, poi salita a soffitto */
-  const pz = -(W/2-12), px = -D/2+16;
-  const pinfo = ['Canna fumaria','Uscita Ø 14 sul lato destro del piano (guardando la termocucina), raccordo orizzontale e salita verticale a soffitto, in appoggio alla parete della finestra.'];
-  const stub = new THREE.Mesh(new THREE.CylinderGeometry(7,7,W/2-12,16), M.ghisa);
-  stub.rotation.x = Math.PI/2; stub.position.set(px, HB+14, pz/2); g.add(stub);
-  stub.userData.info = pinfo;
-  const pipe = new THREE.Mesh(new THREE.CylinderGeometry(7,7,ROOM.h-HB-14,16), M.ghisa);
-  pipe.position.set(px, HB+14+(ROOM.h-HB-14)/2, pz); g.add(pipe);
-  pipe.userData.info = pinfo;
-  const rosone = new THREE.Mesh(new THREE.CylinderGeometry(9,9,3,16), M.ghisa);
-  rosone.position.set(px, HB+14, pz); g.add(rosone);
+  /* canna fumaria: uscita posteriore Ø 150 sul lato destro, poi salita a soffitto lungo la parete */
+  const pz = -(W/2-14), px = -D/2+10, yOut = HT+14;
+  const pinfo = ['Canna fumaria Ø 15','Uscita fumi posteriore Ø 150 della RTVE 80 sul lato destro (guardando la termocucina), raccordo e salita verticale a soffitto in appoggio alla parete della finestra. Diametro da confermare: alcune versioni hanno Ø 130.'];
+  const stub = new THREE.Mesh(new THREE.CylinderGeometry(7.5,7.5,14,16), M.ghisa);
+  stub.position.set(px, HT+7, pz); g.add(stub); stub.userData.info = pinfo;
+  const pipe = new THREE.Mesh(new THREE.CylinderGeometry(7.5,7.5,ROOM.h-yOut,16), M.ghisa);
+  pipe.position.set(px, yOut+(ROOM.h-yOut)/2, pz); g.add(pipe); pipe.userData.info = pinfo;
+  const rosone = new THREE.Mesh(new THREE.CylinderGeometry(9.5,9.5,3,16), M.ghisa);
+  rosone.position.set(px, yOut, pz); g.add(rosone);
 }
 
 /* ---------- impianti ---------- */
@@ -727,7 +735,7 @@ const VIEWS = {
   lavello: {p:[330, 170, 300],  t:[30, 100, 220],  n:'Zona lavello · asse 200'},
   cottura: {p:[210, 160, 330],  t:[155, 110, 30],  n:'Zona cottura · asse 155'},
   colonne: {p:[430, 175, 320],  t:[275, 120, 30],  n:'Colonne forno e frigo'},
-  termo:   {p:[330, 150, 460],  t:[60, 80, 350],   n:'Termocucina a legna'},
+  termo:   {p:[330, 150, 460],  t:[60, 80, 350],   n:'Termocucina Rizzoli RTVE 80'},
   pianta:  {p:[176, 620, 197],  t:[176, 0, 197],   n:'Pianta'}
 };
 let camT = new THREE.Vector3(), tgt = new THREE.Vector3(), tgtT = new THREE.Vector3();
@@ -829,7 +837,7 @@ function dxf(){
     return [X, -Z];
   });
   for(let i=0;i<4;i++) line(pts[i][0],pts[i][1],pts[(i+1)%4][0],pts[(i+1)%4][1],'TERMOCUCINA');
-  text(STOVE.cx-30,-STOVE.cz,'TERMOCUCINA 80',8);
+  text(STOVE.cx-30,-STOVE.cz,'TERMOCUCINA RTVE 80',8);
   IMPIANTI.forEach(p=>{
     if(p.wall==='B'){ line(p.p,0,p.p,14,'IMPIANTI'); text(p.p+2,16,p.t,6); }
     else { line(0,-p.p,14,-p.p,'IMPIANTI'); text(16,-p.p,p.t,6); }
